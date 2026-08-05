@@ -1,0 +1,140 @@
+{
+  "1373248099": {
+    "age_group": "age_teen",
+    "active_sleep_start": null,
+    "logs": [
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:25",
+        "waketime": "21:25",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:24",
+        "waketime": "21:24",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:23",
+        "waketime": "21:23",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:21",
+        "waketime": "21:21",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:20",
+        "waketime": "21:20",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:17",
+        "waketime": "21:17",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:16",
+        "waketime": "21:16",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:15",
+        "waketime": "21:15",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:15",
+        "waketime": "21:15",
+        "duration": 0.0,
+        "quality": "😊 Automatic"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:13",
+        "waketime": "21:13",
+        "duration": 0.0,
+        "quality": "😊 Добре / Good / Хорошо"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:12",
+        "waketime": "21:12",
+        "duration": 0.0,
+        "quality": "😊 Добре / Good / Хорошо"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "00:00",
+        "waketime": "08:00",
+        "duration": 8.0,
+        "quality": "🚀 Відмінно / Excellent / Отлично"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "21:07",
+        "waketime": "21:07",
+        "duration": 0.0,
+        "quality": "😐 Нормально / Normal / Нормально"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "20:59",
+        "waketime": "20:59",
+        "duration": 0.0,
+        "quality": "😊 Добре / Good / Хорошо"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "20:56",
+        "waketime": "20:56",
+        "duration": 0.0,
+        "quality": "🥱 Погано / Poor / Плохо"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "20:56",
+        "waketime": "20:56",
+        "duration": 0.0,
+        "quality": "😐 Нормально / Normal / Нормально"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "20:54",
+        "waketime": "20:54",
+        "duration": 0.0,
+        "quality": "😊 Добре / Good / Хорошо"
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "20:31",
+        "waketime": "20:47",
+        "duration": 0.3,
+        "quality": "🥱 Погано"
+      }
+    ],
+    "goal": "goal_fall",
+    "is_configured": true,
+    "usual_bedtime": "bt_deep_night",
+    "usual_waketime": "wt_normal",
+    "disruptor": "dis_phone",
+    "lang": "uk"
+  }
+}

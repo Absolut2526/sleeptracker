@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sleep Tracker - Telegram Mini App</title>
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Background Stars Effect -->
+    <div class="stars-bg"></div>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="user-profile">
+        <div class="avatar-container" id="userAvatar">
+          <i class="fa-solid fa-moon"></i>
+        </div>
+        <div class="user-info">
+          <span class="greeting">Трекер сну 🌙</span>
+          <h2 class="user-name" id="userName">Користувач</h2>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" title="Змінити тему">
+          <i class="fa-solid fa-sun"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- App Main Views -->
+    <main class="app-content">
+
+      <!-- MAIN TAB: DASHBOARD & TIMER -->
+      <section id="tab-dashboard" class="tab-page active">
+        
+        <!-- Big Sleep Live Timer Card -->
+        <div class="sleep-hero-card">
+          <div class="moon-glow-ring" id="moonGlow">
+            <i class="fa-solid fa-moon" id="heroMoonIcon"></i>
+          </div>
+          <span class="sleep-status-tag" id="sleepStatusTag">☀️ Ви прокинулися</span>
+          <h1 class="sleep-timer-display" id="sleepTimerDisplay">00:00:00</h1>
+          <p class="sleep-hero-sub" id="sleepHeroSub">Натисніть кнопку, коли лягаєте спати</p>
+          
+          <button class="action-sleep-btn" id="sleepActionBtn" onclick="toggleSleepTimer()">
+            <i class="fa-solid fa-bed"></i> <span id="sleepActionText">Лягати спати</span>
+          </button>
+        </div>
+
+        <!-- Sleep Cycles Helper -->
+        <div class="card sleep-cycles-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-clock-rotate-left"></i> Калькулятор циклів сну (90 хв)</h4>
+          </div>
+          <p class="card-sub">Якщо ви заснете прямо зараз (<span id="currentTimeShort">23:30</span>), найкраще прокинутися о:</p>
+          <div class="cycles-chips" id="cyclesChips">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Today Summary Card -->
+        <div class="stats-row">
+          <div class="card stat-box">
+            <span class="stat-lbl">Останній сон</span>
+            <h3 id="lastSleepHours">8.0 <small>год</small></h3>
+            <span class="stat-badge positive" id="lastSleepQuality">🚀 Відмінно</span>
+          </div>
+
+          <div class="card stat-box">
+            <span class="stat-lbl">Середнє за тиждень</span>
+            <h3 id="avgSleepHours">7.6 <small>год</small></h3>
+            <span class="stat-badge neutral">Норма 8.0 год</span>
+          </div>
+        </div>
+
+        <!-- Weekly Chart Card -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-chart-simple"></i> Сон за тиждень</h4>
+            <span class="chart-avg-tag" id="chartAvgTag">7.6 год / ніч</span>
+          </div>
+          <div class="bar-chart-container" id="barChartContainer">
+            <!-- Rendered dynamically via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB: RELAX & BREATHING -->
+      <section id="tab-relax" class="tab-page">
+        <div class="section-title">
+          <h3>Релакс & Дихання 🧘</h3>
+          <p>Вправа 4-7-8 для швидкого засинання</p>
+        </div>
+
+        <!-- Breathing Exercise Circle -->
+        <div class="card breathing-card">
+          <div class="breathing-circle-outer">
+            <div class="breathing-circle-inner" id="breathCircle">
+              <span class="breath-text" id="breathText">Старт</span>
+            </div>
+          </div>
+          <p class="breath-instruction" id="breathInstruction">Натисніть "Розпочати", щоб розслабитися</p>
+          <button class="add-btn" id="breathStartBtn" onclick="toggleBreathingExercise()" style="margin-top:16px;">
+            <i class="fa-solid fa-play"></i> Розпочати вправу
+          </button>
+        </div>
+
+        <!-- Sleep Tips Card -->
+        <div class="card tips-card">
+          <h4><i class="fa-solid fa-lightbulb"></i> Здорові звички сну</h4>
+          <ul class="tips-list">
+            <li><i class="fa-solid fa-mobile-screen-button"></i> Вимикайте екрани за 30 хвилин до сну</li>
+            <li><i class="fa-solid fa-mug-hot"></i> Уникайте кофеїну після 15:00</li>
+            <li><i class="fa-solid fa-temperature-arrow-down"></i> Оптимальна температура в спальні: 18-20°C</li>
+            <li><i class="fa-solid fa-sun"></i> Отримуйте сонячне світло зранку для циркадного ритму</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- TAB: JOURNAL & HISTORY -->
+      <section id="tab-journal" class="tab-page">
+        <div class="section-title-bar">
+          <div>
+            <h3>Журнал сну 📜</h3>
+            <p>Ваші останні записи та якість</p>
+          </div>
+          <button class="add-btn" onclick="openSleepModal()">
+            <i class="fa-solid fa-plus"></i> Запис
+          </button>
+        </div>
+
+        <div class="journal-list" id="journalList">
+          <!-- Rendered dynamically -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
+        <i class="fa-solid fa-moon"></i>
+        <span>Сон</span>
+      </button>
+      <button class="nav-item" data-tab="relax" onclick="switchTab('relax')">
+        <i class="fa-solid fa-spa"></i>
+        <span>Релакс</span>
+      </button>
+      <button class="nav-item" data-tab="journal" onclick="switchTab('journal')">
+        <i class="fa-solid fa-book-bookmark"></i>
+        <span>Журнал</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- MODAL: Manual Sleep Log -->
+  <div class="modal" id="sleepModal">
+    <div class="modal-backdrop" onclick="closeSleepModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Записати сон 🌙</h3>
+        <button class="close-btn" onclick="closeSleepModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="sleepForm" onsubmit="saveSleepLog(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Час засинання</label>
+            <input type="time" id="sleepBedtime" value="23:30" required>
+          </div>
+          <div class="form-group">
+            <label>Час пробудження</label>
+            <input type="time" id="sleepWaketime" value="07:30" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Якість сну</label>
+          <select id="sleepQuality">
+            <option value="🚀 Відмінно">🚀 Відмінно (Легкий підйом, бадьорість)</option>
+            <option value="😊 Добре">😊 Добре (Гарний сон)</option>
+            <option value="😐 Нормально">😐 Нормально (Середньо)</option>
+            <option value="🥱 Погано">🥱 Погано (Важко прокидатися)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Фактори перед сном</label>
+          <div class="factors-chips" id="factorsChips">
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="☕ Кава пізно">☕ Кава пізно</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="📱 Екран">📱 Екран</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="🏃 Спорт">🏃 Спорт</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="🧘 Медитація">🧘 Медитація</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="📖 Читання">📖 Читання</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Замітка (самопочуття)</label>
+          <input type="text" id="sleepNote" placeholder="Наприклад: прокидався вночі один раз">
+        </div>
+
+        <button type="submit" class="submit-btn">Зберегти запис</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

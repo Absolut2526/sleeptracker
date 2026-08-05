@@ -1,0 +1,31 @@
+{
+  "1373248099": {
+    "active_sleep_start": null,
+    "logs": [
+      {
+        "date": "05.08.2026",
+        "bedtime": "20:28",
+        "waketime": "20:29",
+        "duration": 0.0,
+        "quality": "🥱 Погано",
+        "note": ""
+      },
+      {
+        "date": "05.08.2026",
+        "bedtime": "23:30",
+        "waketime": "07:30",
+        "duration": 8.0,
+        "quality": "🚀 Відмінно",
+        "note": "Гарний сон"
+      },
+      {
+        "date": "04.08.2026",
+        "bedtime": "00:15",
+        "waketime": "07:45",
+        "duration": 7.5,
+        "quality": "😊 Добре",
+        "note": "Пізно заснув"
+      }
+    ]
+  }
+}
