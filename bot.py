@@ -8,6 +8,7 @@ import sys
 import json
 import asyncio
 from datetime import datetime, timedelta
+from aiohttp import web  # Додано для веб-сервера Render
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -22,8 +23,8 @@ from g4f.client import Client
 
 ai_client = Client()
 
-# 🔑 Токен бота від @BotFather
-BOT_TOKEN = "8769890259:AAG3E0z5291d1OGwoJVSm9xmi2j2jQY2HbI"
+# 🔑 Токен бота від @BotFather (зчитуємо з Environment Variables для безпеки)
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8769890259:AAG3E0z5291d1OGwoJVSm9xmi2j2jQY2HbI")
 
 # Ініціалізація бота
 bot = Bot(token=BOT_TOKEN)
@@ -181,7 +182,7 @@ WAKETIME_OPTIONS = {
         "wt_early": "🌅 05:00 - 07:00 (Рання пташка)",
         "wt_normal": "☀️ 07:00 - 09:00 (Стандарт)",
         "wt_comfort": "🌤️ 09:00 - 11:00 (Комфортний ранок)",
-        "wt_noon": "<ctrl42> 11:00 - 13:00 (Південь)",
+        "wt_noon": "🕛 11:00 - 13:00 (Південь)",
         "wt_afternoon": "🌇 13:00 - 15:00 (Обідній підйом)",
         "wt_late_day": "😴 Після 15:00 (Пізній день)"
     },
@@ -393,7 +394,7 @@ def generate_ai_deep_analysis_fallback(profile, duration, quality, bedtime_str, 
     if diff >= 0:
         score = "90/100 🟢 Відмінно"
         status_text = f"Норму сну ({target} год) перевиконано. Пройдено ~{cycles} фаз."
-        cns_text = "Нервова система повністю відновлена."
+        cns_text = "Нервова система полностью восстановлена."
     else:
         score = "72/100 🟡 Посередньо"
         status_text = f"Виявлено дефіцит у {abs(diff)} год. Пройдено ~{cycles} фаз."
@@ -911,12 +912,29 @@ async def process_ai_question(message: types.Message, state: FSMContext):
     except Exception:
         await message.answer(f"🤖 **ШІ-Консультант:**\n\n{ai_answer}", parse_mode="Markdown")
 
+# --- ВЕБ-СЕРВЕР ДЛЯ СУМІСНОСТІ З RENDER WEB SERVICE ---
+async def handle_ping(request):
+    return web.Response(text="Bot is live and listening!")
+
 async def main():
+    logging.basicConfig(level=logging.INFO)
     print("🤖 Multilingual bot with Deep AI Sleep Engine launched!")
+
+    # Запускаємо фоновий веб-сервер для перевірки портів Render
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    
+    port = int(os.getenv("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"🌐 Web server bound to port {port}")
+
+    # Запускаємо polling бота
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
