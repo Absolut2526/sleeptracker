@@ -3,6 +3,14 @@ import os
 os.environ['SSL_CERT_FILE'] = certifi.where()
 os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 
+# Завантажуємо змінні оточення з .env (для локального запуску).
+# На хостингу (Render тощо) змінні задаються через панель, і .env не потрібен.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 import logging
 import sys
 import json
@@ -27,8 +35,14 @@ from g4f.client import Client
 
 ai_client = Client()
 
-# 🔑 Токен бота від @BotFather (зчитуємо з Environment Variables для безпеки)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8769890259:AAG3E0z5291d1OGwoJVSm9xmi2j2jQY2HbI")
+# 🔑 Токен бота від @BotFather. ОБОВʼЯЗКОВО задається через змінну оточення BOT_TOKEN.
+# Ніколи не хардкодьте токен у коді — інакше будь-хто з доступу до репозиторію захопить бота.
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError(
+        "BOT_TOKEN не задано. Додайте змінну оточення BOT_TOKEN "
+        "(див. .env.example) перед запуском бота."
+    )
 
 # Ініціалізація бота
 bot = Bot(token=BOT_TOKEN)
@@ -36,17 +50,21 @@ dp = Dispatcher(storage=MemoryStorage())
 
 DATA_FILE = "sleep_ai_data.json"
 
-# ID адміністраторів, які мають доступ до /admin та /buyers
-ADMIN_IDS = [1373248099]
+# ID адміністраторів, які мають доступ до /admin та /buyers.
+# Задаються через змінну оточення ADMIN_IDS (список через кому), напр.: ADMIN_IDS="1373248099,987654321"
+ADMIN_IDS = []
 env_admin = os.getenv("ADMIN_IDS")
 if env_admin:
     try:
         ADMIN_IDS.extend([int(x.strip()) for x in env_admin.split(",") if x.strip()])
     except ValueError:
-        pass
+        logging.warning("ADMIN_IDS має некоректний формат. Очікується список чисел через кому.")
 
-# Група для перевірки квитанцій про оплату
-ADMIN_GROUP_ID = -5372107737
+# Група для перевірки квитанцій про оплату (задається через ADMIN_GROUP_ID)
+try:
+    ADMIN_GROUP_ID = int(os.getenv("ADMIN_GROUP_ID", "0"))
+except ValueError:
+    ADMIN_GROUP_ID = 0
 
 class PaymentReceiptState(StatesGroup):
     waiting_for_receipt = State()

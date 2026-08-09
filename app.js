@@ -823,60 +823,29 @@ function selectTariff(cardElem, tariffKey) {
 function initiateSubscriptionPayment() {
   triggerHaptic();
 
+  // Оплата та видача доступу відбуваються ВИКЛЮЧНО через Telegram-бота:
+  // користувач оплачує 99 грн через Monobank, надсилає квитанцію боту,
+  // а адміністратор підтверджує оплату та активує преміум.
+  // Mini App НЕ надає доступ самостійно (щоб уникнути безкоштовного обходу оплати).
+  const message =
+    "Щоб придбати 7-денний інтенсив за 99 грн:\n\n" +
+    "1️⃣ Поверніться в чат з ботом\n" +
+    "2️⃣ Натисніть «🎓 7-Денний Інтенсив сну» → «Придбати доступ»\n" +
+    "3️⃣ Оплатіть через Monobank і надішліть квитанцію боту\n\n" +
+    "Після підтвердження оплати доступ відкриється автоматично.";
+
   if (tg && tg.showPopup) {
     tg.showPopup({
       title: "Придбати курс за 99 грн 💳",
-      message: `Оплата 7-денного інтенсиву «Засинай за 5 хвилин» — 99 грн (разово).\n\nОберіть спосіб оплати або активуйте доступ:`,
+      message: message,
       buttons: [
-        { id: "pay_mono", type: "default", text: "Оплатити через Monobank (99 грн)" },
-        { id: "demo", type: "ok", text: "Активувати демо-доступ" },
-        { id: "cancel", type: "cancel", text: "Скасувати" }
+        { id: "close", type: "default", text: "Зрозуміло" }
       ]
-    }, (btnId) => {
-      if (btnId === 'pay_mono' || btnId === 'demo') {
-        activateDemoPremium();
-      }
+    }, () => {
+      if (tg.close) tg.close();
     });
   } else {
-    // Fallback in web browser
-    const proceed = confirm(`Придбати 7-денний курс сну за 99 грн?\n\nНатисніть "ОК", щоб перейти до Monobank / Банку або увімкнути доступ.`);
-    if (proceed) {
-      activateDemoPremium();
-    }
+    alert(message);
   }
 }
-
-function applyPromoCode() {
-  triggerHaptic();
-  const input = document.getElementById('promoInput');
-  const feedback = document.getElementById('promoFeedback');
-  if (!input || !feedback) return;
-
-  const code = input.value.trim().toUpperCase();
-  const validCodes = ['SLEEP2026', 'DEMO', 'PREMIUM', 'SLEEP', 'MONO'];
-
-  if (validCodes.includes(code)) {
-    feedback.className = 'promo-feedback success';
-    feedback.textContent = '✅ Промокод активовано! Повний Преміум доступ відкрито 🎉';
-    
-    setTimeout(() => {
-      activateDemoPremium();
-    }, 800);
-  } else {
-    feedback.className = 'promo-feedback error';
-    feedback.textContent = '❌ Невірний або застарілий промокод. Спробуйте SLEEP2026';
-  }
-}
-
-function activateDemoPremium() {
-  triggerHaptic();
-  state.isPremium = true;
-  saveState();
-  renderCourseTab();
-
-  if (tg && tg.showAlert) {
-    tg.showAlert("🎉 Преміум підписку успішно активовано! Доступ до всіх 7 днів інтенсиву відкрито.");
-  }
-}
-
 

@@ -13,6 +13,11 @@ bot.log
 # Environment / secrets
 .env
 *.env
+!.env.example
+
+# User database (містить персональні дані користувачів — не для репозиторію)
+sleep_ai_data.json
+.sleep_ai_*.tmp
 
 # OS
 .DS_Store
