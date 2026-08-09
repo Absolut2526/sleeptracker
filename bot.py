@@ -98,7 +98,32 @@ STRINGS = {
         "already_sleeping": "🌙 Ви вже спите! Коли прокинетеся, натисніть «☀️ Я прокинувся».",
         "not_sleeping": "☀️ Ви ще не вмикали таймер сну. Натисніть «🌙 Лягаю спати».",
         "woke_up_ask_quality": "☀️ Доброго дня / ранку!\n⏱️ Ви проспали **{h} год {m} хв** ({hrs} год).\n\nЯк ви почуваєтеся? Оцініть якість сну:",
-        "log_saved": "✅ **Запис сну збережено!**\n📅 Дата: {date}\n⏱️ Тривалість: **{duration} год** ({bedtime} - {waketime})\n✨ Оцінка: {quality}"
+        "log_saved": "✅ **Запис сну збережено!**\n📅 Дата: {date}\n⏱️ Тривалість: **{duration} год** ({bedtime} - {waketime})\n✨ Оцінка: {quality}",
+        "btn_buy": "💳 Придбати курс (99 грн)",
+        "journal_empty": "📜 Журнал сну порожній.",
+        "journal_title": "📜 Журнал сну:",
+        "journal_entry": "🗓 **{date}** ({bedtime} - {waketime})\n   • {duration} год | {quality}",
+        "quality_auto": "😊 Автоматично",
+        "ai_thinking": "🤖 **ШІ генерує персональний аналіз ночі... ⏳**",
+        "profile_title": "👤 Профіль:",
+        "profile_body": "• Мова: **{lang}**\n• Вік: **{age}**\n• Цільовий сон: **{target} год**\n• Час засинання: **{bedtime}**\n• Час підйому: **{waketime}**",
+        "paywall_locked_header": "🔒 **Ця функція доступна лише після оплати курсу.**\n\n",
+        "paywall_title": "👑 **Ваш Персональний 7-Денний Курс Сну**",
+        "paywall_program": "🎯 **Ваша програма, складена ШІ:**",
+        "paywall_after": "💎 **Після оплати відкриється:**\n• Усі 7 персональних уроків із практичними вправами\n• Трекер сну, статистика та ШІ-консультант\n• Аудіо-релакс та вечірній чек-лист засинання",
+        "paywall_price": "🏷️ **Вартість:** **99 грн** *(одноразовий платіж • доступ назавжди)*",
+        "btn_pay_mono": "💳 Придбати доступ за 99 грн (Monobank / Card)",
+        "pay_mono_title": "💳 **Оплата курсу (99 грн) через Monobank**",
+        "pay_mono_steps": "1️⃣ Перейдіть за посиланням та сплатіть **99 грн** у банку Monobank.\n2️⃣ Зробіть скріншот або фото квитанції про оплату.\n3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!",
+        "btn_pay_link": "🔗 Банка Monobank (Сплатити 99 грн)",
+        "btn_pay_sent": "📸 Я оплатив (Надіслати квитанцію)",
+        "receipt_ask": "📸 **Будь ласка, надішліть фото або скріншот квитанції про оплату.**\n\nОдразу після відправки вона надійде адміністратору на перевірку ⏳",
+        "receipt_received": "✅ **Квитанцію успішно отримано!**\n\nВона відправлена адміністратору на перевірку. Доступ до курсу буде активовано протягом декількох хвилин ⏳",
+        "receipt_not_photo": "⚠️ **Будь ласка, прикріпіть саме фотографію або скріншот квитанції!**",
+        "pay_approved_user": "🎉 **Вітаємо! Вашу оплату 99 грн підтверджено!**\n\nВам надано повний доступ до всіх функцій та 7-денного інтенсиву сну. Обирайте розділ меню нижче!",
+        "pay_rejected_user": "❌ **Вашу квитанцію про оплату не підтверджено.**\n\nБудь ласка, перевірте реквізити та суму (99 грн) або зверніться до підтримки.",
+        "already_premium": "🎉 **У вас вже активовано доступ до курсу!**",
+        "locked_menu_hint": "🔒 Меню нижче доступне до оплати:"
     },
     "en": {
         "welcome": "👋🌙 Welcome to the **AI Sleep Improvement Assistant**!\n\n📋 **Step 1 of 6:** Choose your preferred language:",
@@ -121,7 +146,32 @@ STRINGS = {
         "already_sleeping": "🌙 You are already sleeping! Press '☀️ I woke up' when you wake up.",
         "not_sleeping": "☀️ You haven't started the timer yet. Press '🌙 Going to sleep'.",
         "woke_up_ask_quality": "☀️ Good day / Morning!\n⏱️ You slept **{h} h {m} m** ({hrs} h).\n\nHow do you feel? Rate your sleep quality:",
-        "log_saved": "✅ **Sleep Log Saved!**\n📅 Date: {date}\n⏱️ Duration: **{duration} h** ({bedtime} - {waketime})\n✨ Rating: {quality}"
+        "log_saved": "✅ **Sleep Log Saved!**\n📅 Date: {date}\n⏱️ Duration: **{duration} h** ({bedtime} - {waketime})\n✨ Rating: {quality}",
+        "btn_buy": "💳 Buy course (99 UAH)",
+        "journal_empty": "📜 Your sleep journal is empty.",
+        "journal_title": "📜 Sleep Journal:",
+        "journal_entry": "🗓 **{date}** ({bedtime} - {waketime})\n   • {duration} h | {quality}",
+        "quality_auto": "😊 Automatic",
+        "ai_thinking": "🤖 **AI is generating your personal sleep analysis... ⏳**",
+        "profile_title": "👤 Profile:",
+        "profile_body": "• Language: **{lang}**\n• Age: **{age}**\n• Target sleep: **{target} h**\n• Bedtime: **{bedtime}**\n• Waketime: **{waketime}**",
+        "paywall_locked_header": "🔒 **This feature is available only after purchasing the course.**\n\n",
+        "paywall_title": "👑 **Your Personal 7-Day Sleep Course**",
+        "paywall_program": "🎯 **Your AI-generated program:**",
+        "paywall_after": "💎 **After payment you'll unlock:**\n• All 7 personal lessons with practical exercises\n• Sleep tracker, statistics and AI advisor\n• Audio relaxation and an evening wind-down checklist",
+        "paywall_price": "🏷️ **Price:** **99 UAH** *(one-time payment • lifetime access)*",
+        "btn_pay_mono": "💳 Buy access for 99 UAH (Monobank / Card)",
+        "pay_mono_title": "💳 **Course payment (99 UAH) via Monobank**",
+        "pay_mono_steps": "1️⃣ Follow the link and pay **99 UAH** in Monobank.\n2️⃣ Take a screenshot or photo of the payment receipt.\n3️⃣ Tap the **«📸 I've paid (Send receipt)»** button and attach the photo!",
+        "btn_pay_link": "🔗 Monobank jar (Pay 99 UAH)",
+        "btn_pay_sent": "📸 I've paid (Send receipt)",
+        "receipt_ask": "📸 **Please send a photo or screenshot of your payment receipt.**\n\nAs soon as you send it, it will go to the administrator for review ⏳",
+        "receipt_received": "✅ **Receipt received successfully!**\n\nIt has been sent to the administrator for review. Access to the course will be activated within a few minutes ⏳",
+        "receipt_not_photo": "⚠️ **Please attach only a photo or a screenshot of the receipt!**",
+        "pay_approved_user": "🎉 **Congratulations! Your payment of 99 UAH has been confirmed!**\n\nYou now have full access to all features and the 7-day sleep intensive. Choose a menu section below!",
+        "pay_rejected_user": "❌ **Your payment receipt was not confirmed.**\n\nPlease check the details and the amount (99 UAH), or contact support.",
+        "already_premium": "🎉 **You already have access to the course activated!**",
+        "locked_menu_hint": "🔒 The menu below is available before payment:"
     },
     "ru": {
         "welcome": "👋🌙 Добро пожаловать в **ИИ-Помощник по улучшению качества сна**!\n\n📋 **Шаг 1 из 6:** Выберите удобный язык общения:",
@@ -144,7 +194,32 @@ STRINGS = {
         "already_sleeping": "🌙 Вы уже спите! Когда проснетесь, нажмите «☀️ Я проснулся».",
         "not_sleeping": "☀️ Вы еще не включали таймер сна. Нажмите «🌙 Ложусь спать».",
         "woke_up_ask_quality": "☀️ Доброго дня / утра!\n⏱️ Вы проспали **{h} ч {m} мин** ({hrs} ч).\n\nКак вы себя чувствуете? Оцените качество сна:",
-        "log_saved": "✅ **Запись сна сохранена!**\n📅 Дата: {date}\n⏱️ Длительность: **{duration} ч** ({bedtime} - {waketime})\n✨ Оценка: {quality}"
+        "log_saved": "✅ **Запись сна сохранена!**\n📅 Дата: {date}\n⏱️ Длительность: **{duration} ч** ({bedtime} - {waketime})\n✨ Оценка: {quality}",
+        "btn_buy": "💳 Купить курс (99 грн)",
+        "journal_empty": "📜 Журнал сна пуст.",
+        "journal_title": "📜 Журнал сна:",
+        "journal_entry": "🗓 **{date}** ({bedtime} - {waketime})\n   • {duration} ч | {quality}",
+        "quality_auto": "😊 Автоматически",
+        "ai_thinking": "🤖 **ИИ генерирует персональный анализ ночи... ⏳**",
+        "profile_title": "👤 Профиль:",
+        "profile_body": "• Язык: **{lang}**\n• Возраст: **{age}**\n• Целевой сон: **{target} ч**\n• Время засыпания: **{bedtime}**\n• Время подъёма: **{waketime}**",
+        "paywall_locked_header": "🔒 **Эта функция доступна только после оплаты курса.**\n\n",
+        "paywall_title": "👑 **Ваш персональный 7-дневный курс сна**",
+        "paywall_program": "🎯 **Ваша программа, составленная ИИ:**",
+        "paywall_after": "💎 **После оплаты откроется:**\n• Все 7 персональных уроков с практическими упражнениями\n• Трекер сна, статистика и ИИ-консультант\n• Аудио-релакс и вечерний чек-лист засыпания",
+        "paywall_price": "🏷️ **Стоимость:** **99 грн** *(разовый платёж • доступ навсегда)*",
+        "btn_pay_mono": "💳 Купить доступ за 99 грн (Monobank / Card)",
+        "pay_mono_title": "💳 **Оплата курса (99 грн) через Monobank**",
+        "pay_mono_steps": "1️⃣ Перейдите по ссылке и оплатите **99 грн** в банке Monobank.\n2️⃣ Сделайте скриншот или фото квитанции об оплате.\n3️⃣ Нажмите кнопку **«📸 Я оплатил (Отправить квитанцию)»** и прикрепите фото!",
+        "btn_pay_link": "🔗 Банка Monobank (Оплатить 99 грн)",
+        "btn_pay_sent": "📸 Я оплатил (Отправить квитанцию)",
+        "receipt_ask": "📸 **Пожалуйста, отправьте фото или скриншот квитанции об оплате.**\n\nСразу после отправки она поступит администратору на проверку ⏳",
+        "receipt_received": "✅ **Квитанция успешно получена!**\n\nОна отправлена администратору на проверку. Доступ к курсу будет активирован в течение нескольких минут ⏳",
+        "receipt_not_photo": "⚠️ **Пожалуйста, прикрепите именно фотографию или скриншот квитанции!**",
+        "pay_approved_user": "🎉 **Поздравляем! Ваша оплата 99 грн подтверждена!**\n\nВам предоставлен полный доступ ко всем функциям и 7-дневному интенсиву сна. Выбирайте раздел меню ниже!",
+        "pay_rejected_user": "❌ **Ваша квитанция об оплате не подтверждена.**\n\nПожалуйста, проверьте реквизиты и сумму (99 грн) или обратитесь в поддержку.",
+        "already_premium": "🎉 **У вас уже активирован доступ к курсу!**",
+        "locked_menu_hint": "🔒 Меню ниже доступно до оплаты:"
     }
 }
 
@@ -526,14 +601,54 @@ def generate_ai_deep_analysis_fallback(profile, duration, quality, bedtime_str, 
     diff = round(duration - target, 1)
     cycles = round(duration / 1.5, 1)
 
-    if diff >= 0:
-        score = "90/100 🟢 Відмінно"
-        status_text = f"Норму сну ({target} год) перевиконано. Пройдено ~{cycles} фаз."
-        cns_text = "Нервова система полностью восстановлена."
-    else:
-        score = "72/100 🟡 Посередньо"
-        status_text = f"Виявлено дефіцит у {abs(diff)} год. Пройдено ~{cycles} фаз."
-        cns_text = "Присутня залишкова втома через недосип."
+    is_surplus = diff >= 0
+
+    variants = {
+        "uk": {
+            "score": "90/100 🟢 Відмінно" if is_surplus else "72/100 🟡 Посередньо",
+            "status_text": (
+                f"Норму сну ({target} год) перевиконано. Пройдено ~{cycles} фаз."
+                if is_surplus else
+                f"Виявлено дефіцит у {abs(diff)} год. Пройдено ~{cycles} фаз."
+            ),
+            "cns_text": (
+                "Нервова система повністю відновлена."
+                if is_surplus else
+                "Присутня залишкова втома через недосип."
+            ),
+        },
+        "en": {
+            "score": "90/100 🟢 Excellent" if is_surplus else "72/100 🟡 Fair",
+            "status_text": (
+                f"Sleep norm ({target}h) exceeded. ~{cycles} cycles."
+                if is_surplus else
+                f"Detected deficit of {abs(diff)}h. ~{cycles} cycles."
+            ),
+            "cns_text": (
+                "Nervous system fully recovered."
+                if is_surplus else
+                "Residual fatigue from sleep deficit."
+            ),
+        },
+        "ru": {
+            "score": "90/100 🟢 Отлично" if is_surplus else "72/100 🟡 Посредственно",
+            "status_text": (
+                f"Норма сна ({target}ч) перевыполнена. ~{cycles} циклов."
+                if is_surplus else
+                f"Обнаружен дефицит {abs(diff)}ч. ~{cycles} циклов."
+            ),
+            "cns_text": (
+                "Нервная система полностью восстановлена."
+                if is_surplus else
+                "Присутствует остаточная усталость из-за недосыпа."
+            ),
+        },
+    }
+
+    v = variants.get(lang, variants["uk"])
+    score = v["score"]
+    status_text = v["status_text"]
+    cns_text = v["cns_text"]
 
     if lang == "uk":
         return (
@@ -564,7 +679,7 @@ def get_main_keyboard(profile, is_sleeping=False):
     if not is_premium:
         return ReplyKeyboardMarkup(
             keyboard=[
-                [KeyboardButton(text="💳 Придбати курс (99 грн)")],
+                [KeyboardButton(text=s.get("btn_buy", "💳 Придбати курс (99 грн)"))],
                 [KeyboardButton(text=s.get("btn_profile", "👤 Профіль"))]
             ],
             resize_keyboard=True
@@ -597,27 +712,23 @@ def get_course_days(profile):
 
 def build_paywall(profile, locked_feature=False):
     """Єдиний екран оплати для бота (99 грн, одноразово)."""
+    lang = profile.get("lang", "uk")
+    s = STRINGS.get(lang, STRINGS["uk"])
     course = get_course_days(profile)
     days_locked_str = "\n".join([f"🔒 **{course[d]['title']}**" for d in range(1, 8)])
 
-    header = (
-        "🔒 **Ця функція доступна лише після оплати курсу.**\n\n"
-        if locked_feature else ""
-    )
+    header = s.get("paywall_locked_header", "") if locked_feature else ""
     text = (
         f"{header}"
-        f"👑 **Ваш Персональний 7-Денний Курс Сну**\n"
+        f"{s.get('paywall_title', '')}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"🎯 **Ваша програма, складена ШІ:**\n"
+        f"{s.get('paywall_program', '')}\n"
         f"{days_locked_str}\n\n"
-        f"💎 **Після оплати відкриється:**\n"
-        f"• Усі 7 персональних уроків із практичними вправами\n"
-        f"• Трекер сну, статистика та ШІ-консультант\n"
-        f"• Аудіо-релакс та вечірній чек-лист засинання\n\n"
-        f"🏷️ **Вартість:** **99 грн** *(одноразовий платіж • доступ назавжди)*"
+        f"{s.get('paywall_after', '')}\n\n"
+        f"{s.get('paywall_price', '')}"
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="💳 Придбати доступ за 99 грн (Monobank / Card)", callback_data="pay_mono_link")]
+        [InlineKeyboardButton(text=s.get("btn_pay_mono", "💳 Придбати доступ за 99 грн (Monobank / Card)"), callback_data="pay_mono_link")]
     ])
     return text, kb
 
@@ -630,8 +741,9 @@ async def require_premium(message: types.Message):
     text, kb = build_paywall(profile, locked_feature=True)
     await message.answer(text, reply_markup=kb, parse_mode="Markdown")
     await message.answer(
-        "🔒 Меню нижче доступне до оплати:",
-        reply_markup=get_main_keyboard(profile, is_sleeping=False)
+        get_text(profile, "locked_menu_hint"),
+        reply_markup=get_main_keyboard(profile, is_sleeping=False),
+        parse_mode="Markdown"
     )
     return False
 
@@ -927,7 +1039,7 @@ async def process_waketime(message: types.Message, state: FSMContext):
     bedtime_str = start_time.strftime("%H:%M")
     waketime_str = end_time.strftime("%H:%M")
     date_str = end_time.strftime("%d.%m.%Y")
-    quality = "😊 Automatic"
+    quality = get_text(profile, "quality_auto")
 
     new_log = {
         "date": date_str,
@@ -942,15 +1054,9 @@ async def process_waketime(message: types.Message, state: FSMContext):
     update_user_profile(message.from_user.id, profile)
     await state.clear()
 
-    lang = profile.get("lang", "uk")
     saved_msg = get_text(profile, "log_saved", date=date_str, duration=duration_rounded, bedtime=bedtime_str, waketime=waketime_str, quality=quality)
 
-    thinking_txt = {
-        "uk": "🤖 **ШІ генерує персональний аналіз ночі... ⏳**",
-        "en": "🤖 **AI is generating your personal sleep analysis... ⏳**",
-        "ru": "🤖 **ИИ генерирует персональный анализ ночи... ⏳**"
-    }
-    status_str = thinking_txt.get(lang, thinking_txt["uk"])
+    status_str = get_text(profile, "ai_thinking")
 
     msg = await message.answer(
         f"{saved_msg}\n\n{status_str}",
@@ -985,13 +1091,19 @@ async def show_profile(message: types.Message, state: FSMContext):
         ]
     )
 
+    profile_text = (
+        f"{get_text(profile, 'profile_title')}\n\n"
+        + get_text(
+            profile, "profile_body",
+            lang=LANGUAGES.get(lang, "Українська"),
+            age=age_info["title"],
+            target=age_info["target_hours"],
+            bedtime=bt_title,
+            waketime=wt_title,
+        )
+    )
     await message.answer(
-        f"👤 **Profile / Профіль:**\n\n"
-        f"• Language / Мова: **{LANGUAGES.get(lang, 'Українська')}**\n"
-        f"• Age / Вік: **{age_info['title']}**\n"
-        f"• Target sleep: **{age_info['target_hours']} h**\n"
-        f"• Bedtime: **{bt_title}**\n"
-        f"• Waketime: **{wt_title}**",
+        profile_text,
         reply_markup=kb,
         parse_mode="Markdown"
     )
@@ -1013,12 +1125,19 @@ async def process_journal(message: types.Message):
     profile = get_user_profile(message.from_user.id)
     logs = profile.get("logs", [])
     if not logs:
-        await message.answer("📜 Sleep journal is empty / порожній.", parse_mode="Markdown")
+        await message.answer(get_text(profile, "journal_empty"), parse_mode="Markdown")
         return
 
-    text = "📜 **Sleep Journal:**\n\n"
+    text = get_text(profile, "journal_title") + "\n\n"
     for log in logs[:5]:
-        text += f"🗓 **{log['date']}** ({log['bedtime']} - {log['waketime']})\n   • {log['duration']} h | {log['quality']}\n\n"
+        text += get_text(
+            profile, "journal_entry",
+            date=log["date"],
+            bedtime=log["bedtime"],
+            waketime=log["waketime"],
+            duration=log["duration"],
+            quality=log["quality"],
+        ) + "\n\n"
 
     await message.answer(text, parse_mode="Markdown")
 
@@ -1133,15 +1252,14 @@ async def process_course_main(message: types.Message):
 
 @dp.callback_query(F.data == "pay_mono_link")
 async def process_pay_mono_link(callback: CallbackQuery, state: FSMContext):
+    profile = get_user_profile(callback.from_user.id)
     text = (
-        "💳 **Оплата курсу (99 грн) через Monobank**\n\n"
-        "1️⃣ Перейдіть за посиланням та складіть **99 грн** у Банку Monobank.\n"
-        "2️⃣ Зробіть скріншот або фото квитанції про оплату.\n"
-        "3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!"
+        f"{get_text(profile, 'pay_mono_title')}\n\n"
+        f"{get_text(profile, 'pay_mono_steps')}"
     )
     buttons = [
-        [InlineKeyboardButton(text="🔗 Банка Monobank (Оплатити 99 грн)", url="https://send.monobank.ua")],
-        [InlineKeyboardButton(text="📸 Я оплатив (Надіслати квитанцію)", callback_data="pay_upload_receipt")]
+        [InlineKeyboardButton(text=get_text(profile, "btn_pay_link"), url="https://send.monobank.ua")],
+        [InlineKeyboardButton(text=get_text(profile, "btn_pay_sent"), callback_data="pay_upload_receipt")]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
@@ -1149,10 +1267,10 @@ async def process_pay_mono_link(callback: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(F.data == "pay_upload_receipt")
 async def process_pay_upload_receipt(callback: CallbackQuery, state: FSMContext):
+    profile = get_user_profile(callback.from_user.id)
     await state.set_state(PaymentReceiptState.waiting_for_receipt)
     await callback.message.answer(
-        "📸 **Будь ласка, надішліть фото або скріншот квитанції про оплату.**\n\n"
-        "Одразу після відправки вона надійде адміністратору на перевірку ⏳",
+        get_text(profile, "receipt_ask"),
         parse_mode="Markdown"
     )
     await callback.answer()
@@ -1195,15 +1313,16 @@ async def process_receipt_photo(message: types.Message, state: FSMContext):
             except Exception:
                 pass
 
+    user_profile = get_user_profile(user_id)
     await message.answer(
-        "✅ **Квитанцію успішно отримано!**\n\n"
-        "Вона відправлена адміністратору на перевірку. Доступ до курсу буде активовано протягом декількох хвилин ⏳",
+        get_text(user_profile, "receipt_received"),
         parse_mode="Markdown"
     )
 
 @dp.message(PaymentReceiptState.waiting_for_receipt)
 async def process_receipt_not_photo(message: types.Message):
-    await message.answer("⚠️ **Будь ласка, прикріпіть саме фотографію або скріншот квитанції!**", parse_mode="Markdown")
+    profile = get_user_profile(message.from_user.id)
+    await message.answer(get_text(profile, "receipt_not_photo"), parse_mode="Markdown")
 
 # --- ОБРОБНИКИ КНОПОК ПРИЙНЯТИ / ВІДХИЛИТИ В АДМІН-ГРУПІ ---
 @dp.callback_query(F.data.startswith("adm_approve_"))
@@ -1230,8 +1349,7 @@ async def process_admin_approve_payment(callback: CallbackQuery):
     try:
         await bot.send_message(
             chat_id=target_user_id,
-            text="🎉 **Вітаємо! Вашу оплату 99 грн підтверджено!**\n\n"
-                 "Вам надано повний доступ до всіх функцій та 7-денного інтенсиву сну «Засинай за 5 хвилин». Обирайте розділ меню нижче!",
+            text=get_text(profile, "pay_approved_user"),
             reply_markup=get_main_keyboard(profile, is_sleeping=False),
             parse_mode="Markdown"
         )
@@ -1254,11 +1372,11 @@ async def process_admin_reject_payment(callback: CallbackQuery):
         pass
 
     # Повідомлення користувачу в приватні повідомлення
+    profile = get_user_profile(target_user_id)
     try:
         await bot.send_message(
             chat_id=target_user_id,
-            text="❌ **Вашу квитанцію про оплату не підтверджено.**\n\n"
-                 "Будь ласка, перевірте реквізити та суму (99 грн) або зверніться до підтримки.",
+            text=get_text(profile, "pay_rejected_user"),
             parse_mode="Markdown"
         )
     except Exception as e:
@@ -1266,22 +1384,20 @@ async def process_admin_reject_payment(callback: CallbackQuery):
 
     await callback.answer("❌ Оплату відхилено", show_alert=True)
 
-@dp.message(F.text == "💳 Придбати курс (99 грн)")
+@dp.message(F.text.in_([STRINGS["uk"]["btn_buy"], STRINGS["en"]["btn_buy"], STRINGS["ru"]["btn_buy"]]))
 async def cmd_buy_course_btn(message: types.Message):
     profile = get_user_profile(message.from_user.id)
     if profile.get("is_premium", False):
-        await message.answer("🎉 **У вас вже активовано доступ до курсу!**", reply_markup=get_main_keyboard(profile), parse_mode="Markdown")
+        await message.answer(get_text(profile, "already_premium"), reply_markup=get_main_keyboard(profile), parse_mode="Markdown")
         return
 
     text = (
-        "💳 **Оплата курсу (99 грн) через Monobank**\n\n"
-        "1️⃣ Перейдіть за посиланням та складіть **99 грн** у Банку Monobank.\n"
-        "2️⃣ Зробіть скріншот або фото квитанції про оплату.\n"
-        "3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!"
+        f"{get_text(profile, 'pay_mono_title')}\n\n"
+        f"{get_text(profile, 'pay_mono_steps')}"
     )
     buttons = [
-        [InlineKeyboardButton(text="🔗 Банка Monobank (Оплатити 99 грн)", url="https://send.monobank.ua")],
-        [InlineKeyboardButton(text="📸 Я оплатив (Надіслати квитанцію)", callback_data="pay_upload_receipt")]
+        [InlineKeyboardButton(text=get_text(profile, "btn_pay_link"), url="https://send.monobank.ua")],
+        [InlineKeyboardButton(text=get_text(profile, "btn_pay_sent"), callback_data="pay_upload_receipt")]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     await message.answer(text, reply_markup=kb, parse_mode="Markdown")
