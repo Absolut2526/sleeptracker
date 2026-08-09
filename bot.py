@@ -72,10 +72,7 @@ STRINGS = {
         "btn_course": "🎓 7-Денний Інтенсив сну",
         "btn_ask_ai": "🤖 Запитати ШІ-Консультанта",
         "btn_profile": "👤 Мій Профіль & Налаштування",
-        "btn_cycles": "⏱️ Калькулятор циклів",
         "btn_journal": "📜 Журнал сну",
-        "btn_breath": "🧘 Вправа 4-7-8",
-        "btn_tips": "💡 Поради",
         "change_lang": "🌐 Змінити мову / Change language",
         "re_onboarding": "🔄 Пройти опитування знову",
         "toggle_rem": "Нагадування про сон",
@@ -98,10 +95,7 @@ STRINGS = {
         "btn_course": "🎓 7-Day Sleep Course",
         "btn_ask_ai": "🤖 Ask AI Advisor",
         "btn_profile": "👤 Profile & Settings",
-        "btn_cycles": "⏱️ Cycle Calculator",
         "btn_journal": "📜 Sleep Journal",
-        "btn_breath": "🧘 4-7-8 Breathing",
-        "btn_tips": "💡 Tips",
         "change_lang": "🌐 Change language",
         "re_onboarding": "🔄 Retake survey",
         "toggle_rem": "Sleep reminder",
@@ -124,10 +118,7 @@ STRINGS = {
         "btn_course": "🎓 7-Дневный Интенсив сна",
         "btn_ask_ai": "🤖 Спросить ИИ-Консультанта",
         "btn_profile": "👤 Мой Профиль и Настройки",
-        "btn_cycles": "⏱️ Калькулятор циклов",
         "btn_journal": "📜 Журнал сна",
-        "btn_breath": "🧘 Упражнение 4-7-8",
-        "btn_tips": "💡 Советы",
         "change_lang": "🌐 Изменить язык / Change language",
         "re_onboarding": "🔄 Пройти опрос заново",
         "toggle_rem": "Напоминание о сне",
@@ -566,8 +557,7 @@ def get_main_keyboard(profile, is_sleeping=False):
         keyboard=[
             [sleep_btn],
             [KeyboardButton(text=s["btn_course"]), KeyboardButton(text=s["btn_ask_ai"])],
-            [KeyboardButton(text=s["btn_cycles"]), KeyboardButton(text=s["btn_journal"])],
-            [KeyboardButton(text=s["btn_breath"]), KeyboardButton(text=s["btn_tips"])],
+            [KeyboardButton(text=s["btn_journal"])],
             [KeyboardButton(text=s["btn_profile"])]
         ],
         resize_keyboard=True
@@ -996,20 +986,6 @@ async def re_onboarding(callback: CallbackQuery, state: FSMContext):
         pass
     await cmd_start(callback.message, state)
 
-# --- ⏱️ КАЛЬКУЛЯТОР ЦИКЛІВ ---
-@dp.message(F.text.in_([STRINGS["uk"]["btn_cycles"], STRINGS["en"]["btn_cycles"], STRINGS["ru"]["btn_cycles"]]))
-async def process_cycles(message: types.Message):
-    if not await require_premium(message):
-        return
-
-    now = datetime.now()
-    text = f"⏱️ **Sleep Cycle Calculator (90 min)**\n\nIf you fall asleep at **{now.strftime('%H:%M')}**, best wake up times:\n\n"
-    cycles = [(3, 4.5), (4, 6.0), (5, 7.5), (6, 9.0)]
-    for c, hrs in cycles:
-        wake_time = now + timedelta(minutes=int(c * 90 + 15))
-        text += f"• **{wake_time.strftime('%H:%M')}** ({hrs} h)\n"
-    await message.answer(text, parse_mode="Markdown")
-
 # --- 📜 ЖУРНАЛ СНУ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_journal"], STRINGS["en"]["btn_journal"], STRINGS["ru"]["btn_journal"]]))
 async def process_journal(message: types.Message):
@@ -1026,36 +1002,6 @@ async def process_journal(message: types.Message):
     for log in logs[:5]:
         text += f"🗓 **{log['date']}** ({log['bedtime']} - {log['waketime']})\n   • {log['duration']} h | {log['quality']}\n\n"
 
-    await message.answer(text, parse_mode="Markdown")
-
-# --- 🧘 ВПРАВА 4-7-8 ---
-@dp.message(F.text.in_([STRINGS["uk"]["btn_breath"], STRINGS["en"]["btn_breath"], STRINGS["ru"]["btn_breath"]]))
-async def process_breathing(message: types.Message):
-    if not await require_premium(message):
-        return
-
-    text = (
-        "🧘 **4-7-8 Breathing Technique / Техніка 4-7-8:**\n\n"
-        "1️⃣ **Inhale** / Вдих (4 sec)\n"
-        "2️⃣ **Hold** / Затримайте (7 sec)\n"
-        "3️⃣ **Exhale** / Видих (8 sec)\n\n"
-        "Repeat 4 times to calm your nervous system!"
-    )
-    await message.answer(text, parse_mode="Markdown")
-
-# --- 💡 ПОРАДИ ---
-@dp.message(F.text.in_([STRINGS["uk"]["btn_tips"], STRINGS["en"]["btn_tips"], STRINGS["ru"]["btn_tips"]]))
-async def process_tips(message: types.Message):
-    if not await require_premium(message):
-        return
-
-    text = (
-        "💡 **Sleep Hygiene Tips / Поради:**\n\n"
-        "📱 **Screens:** Turn off devices 30-45 mins before sleep.\n"
-        "☕ **Caffeine:** Avoid coffee 7 hours prior to bedtime.\n"
-        "🌡️ **Room:** Keep temperature cool (18-20°C / 65-68°F).\n"
-        "🕶️ **Night owls:** Use Blackout curtains if sleeping past dawn!"
-    )
     await message.answer(text, parse_mode="Markdown")
 
 # --- 🎓 7-ДЕННИЙ ІНТЕНСИВ СНУ ТА ВЕЧІРНІЙ ЧЕК-ЛИСТ ---

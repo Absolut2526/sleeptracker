@@ -41,7 +41,6 @@ let audioTimerTimeout = null;
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
   initTelegramUser();
-  calculateSleepCycles();
   renderWeeklyChart();
   renderJournal();
   updateSleepTimerUI();
@@ -225,28 +224,6 @@ function updateSleepTimerUI() {
   }
 }
 
-// SLEEP CYCLES CALCULATOR
-function calculateSleepCycles() {
-  const now = new Date();
-  document.getElementById('currentTimeShort').textContent = formatTime(now);
-
-  const container = document.getElementById('cyclesChips');
-  container.innerHTML = '';
-
-  // Calculate wake up times for 3, 4, 5, 6 sleep cycles (90 min each + 15 min to fall asleep)
-  const cycles = [3, 4, 5, 6]; // 4.5h, 6h, 7.5h, 9h
-  cycles.forEach(c => {
-    const wakeTime = new Date(now.getTime() + (c * 90 + 15) * 60 * 1000);
-    const chip = document.createElement('div');
-    chip.className = 'cycle-chip';
-    chip.innerHTML = `
-      <strong>${formatTime(wakeTime)}</strong>
-      <span>${c * 1.5} год (${c} ц)</span>
-    `;
-    container.appendChild(chip);
-  });
-}
-
 // WEEKLY BAR CHART GENERATOR
 function renderWeeklyChart() {
   const container = document.getElementById('barChartContainer');
@@ -274,63 +251,6 @@ function renderWeeklyChart() {
 
     container.appendChild(col);
   });
-}
-
-// BREATHING EXERCISE (4-7-8 Technique)
-function toggleBreathingExercise() {
-  triggerHaptic();
-  const circle = document.getElementById('breathCircle');
-  const text = document.getElementById('breathText');
-  const instruction = document.getElementById('breathInstruction');
-  const btn = document.getElementById('breathStartBtn');
-
-  if (!isBreathingRunning) {
-    isBreathingRunning = true;
-    btn.innerHTML = '<i class="fa-solid fa-stop"></i> Зупинити';
-    
-    let phase = 0; // 0: Inhale 4s, 1: Hold 7s, 2: Exhale 8s
-    
-    const runCycle = () => {
-      if (!isBreathingRunning) return;
-
-      if (phase === 0) {
-        // Inhale 4s
-        text.textContent = 'Вдих...';
-        instruction.textContent = 'Повільно вдихайте носом (4 сек)';
-        circle.style.transform = 'scale(1.5)';
-        circle.style.backgroundColor = '#818cf8';
-        setTimeout(() => {
-          if (isBreathingRunning) { phase = 1; runCycle(); }
-        }, 4000);
-      } else if (phase === 1) {
-        // Hold 7s
-        text.textContent = 'Затримка';
-        instruction.textContent = 'Затримайте дихання (7 сек)';
-        circle.style.transform = 'scale(1.5)';
-        circle.style.backgroundColor = '#c084fc';
-        setTimeout(() => {
-          if (isBreathingRunning) { phase = 2; runCycle(); }
-        }, 7000);
-      } else if (phase === 2) {
-        // Exhale 8s
-        text.textContent = 'Видих...';
-        instruction.textContent = 'Повільно видихайте ротом (8 сек)';
-        circle.style.transform = 'scale(1)';
-        circle.style.backgroundColor = '#34d399';
-        setTimeout(() => {
-          if (isBreathingRunning) { phase = 0; runCycle(); }
-        }, 8000);
-      }
-    };
-
-    runCycle();
-  } else {
-    isBreathingRunning = false;
-    btn.innerHTML = '<i class="fa-solid fa-play"></i> Розпочати вправу';
-    text.textContent = 'Старт';
-    instruction.textContent = 'Натисніть "Розпочати", щоб розслабитися';
-    circle.style.transform = 'scale(1)';
-  }
 }
 
 // JOURNAL & HISTORY

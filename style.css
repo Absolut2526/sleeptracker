@@ -323,32 +323,6 @@ body {
   box-shadow: 0 6px 20px var(--accent-emerald-glow);
 }
 
-/* Cycles Helper Chips */
-.cycles-chips {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.cycle-chip {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  white-space: nowrap;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.cycle-chip strong {
-  font-family: var(--font-heading);
-  font-size: 0.95rem;
-  color: var(--accent-purple);
-}
-
 /* Stats Row Grid */
 .stats-row {
   display: grid;
@@ -476,72 +450,6 @@ body {
 .section-title p {
   font-size: 0.85rem;
   color: var(--text-secondary);
-}
-
-.breathing-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 30px 20px;
-}
-
-.breathing-circle-outer {
-  width: 180px;
-  height: 180px;
-  border-radius: var(--radius-full);
-  border: 2px dashed rgba(129, 140, 248, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.breathing-circle-inner {
-  width: 110px;
-  height: 110px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  box-shadow: 0 0 30px var(--accent-indigo-glow);
-  transition: transform 4s ease-in-out, background-color 0.4s ease;
-}
-
-.breath-text {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.breath-instruction {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.tips-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.tips-list li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-}
-
-.tips-list li i {
-  color: var(--accent-amber);
-  font-size: 1.1rem;
-  width: 20px;
 }
 
 /* JOURNAL & HISTORY TAB */
