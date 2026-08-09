@@ -7,10 +7,14 @@ import logging
 import sys
 import json
 import asyncio
+import html
+import threading
+import tempfile
+import secrets
 from datetime import datetime, timedelta
 from aiohttp import web  # Додано для веб-сервера Render
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -32,6 +36,21 @@ dp = Dispatcher(storage=MemoryStorage())
 
 DATA_FILE = "sleep_ai_data.json"
 
+# ID адміністраторів, які мають доступ до /admin та /buyers
+ADMIN_IDS = [1373248099]
+env_admin = os.getenv("ADMIN_IDS")
+if env_admin:
+    try:
+        ADMIN_IDS.extend([int(x.strip()) for x in env_admin.split(",") if x.strip()])
+    except ValueError:
+        pass
+
+# Група для перевірки квитанцій про оплату
+ADMIN_GROUP_ID = -5372107737
+
+class PaymentReceiptState(StatesGroup):
+    waiting_for_receipt = State()
+
 LANGUAGES = {
     "uk": "🇺🇦 Українська",
     "en": "🇬🇧 English",
@@ -50,6 +69,8 @@ STRINGS = {
         "profile_created": "🎉 **Персональний ШІ-Профіль Сну створено!**",
         "btn_sleep": "🌙 Лягаю спати",
         "btn_wake": "☀️ Я прокинувся",
+        "btn_course": "🎓 7-Денний Інтенсив сну",
+        "btn_checklist": "📋 Вечірній Чек-лист",
         "btn_ask_ai": "🤖 Запитати ШІ-Консультанта",
         "btn_caffeine": "☕ Кофеїновий таймер",
         "btn_stats": "📊 ШІ-Статистика & Борг",
@@ -79,6 +100,8 @@ STRINGS = {
         "profile_created": "🎉 **Personal AI Sleep Profile Created!**",
         "btn_sleep": "🌙 Going to sleep",
         "btn_wake": "☀️ I woke up",
+        "btn_course": "🎓 7-Day Sleep Course",
+        "btn_checklist": "📋 Evening Checklist",
         "btn_ask_ai": "🤖 Ask AI Advisor",
         "btn_caffeine": "☕ Caffeine Timer",
         "btn_stats": "📊 AI Stats & Debt",
@@ -108,6 +131,8 @@ STRINGS = {
         "profile_created": "🎉 **Персональный ИИ-Профиль Сна создан!**",
         "btn_sleep": "🌙 Ложусь спать",
         "btn_wake": "☀️ Я проснулся",
+        "btn_course": "🎓 7-Дневный Интенсив сна",
+        "btn_checklist": "📋 Вечерний Чек-лист",
         "btn_ask_ai": "🤖 Спросить ИИ-Консультанта",
         "btn_caffeine": "☕ Кофеиновый таймер",
         "btn_stats": "📊 ИИ-Статистика и Долг",
@@ -252,12 +277,33 @@ DISRUPTORS = {
     }
 }
 
+# Оцінки якості сну розкладені по мовах, щоб не змішувати три мови в одному рядку.
 QUALITY_MAP = {
-    "q_excellent": "🚀 Відмінно / Excellent / Отлично",
-    "q_good": "😊 Добре / Good / Хорошо",
-    "q_normal": "😐 Нормально / Normal / Нормально",
-    "q_poor": "🥱 Погано / Poor / Плохо"
+    "uk": {
+        "q_excellent": "🚀 Відмінно",
+        "q_good": "😊 Добре",
+        "q_normal": "😐 Нормально",
+        "q_poor": "🥱 Погано"
+    },
+    "en": {
+        "q_excellent": "🚀 Excellent",
+        "q_good": "😊 Good",
+        "q_normal": "😐 Normal",
+        "q_poor": "🥱 Poor"
+    },
+    "ru": {
+        "q_excellent": "🚀 Отлично",
+        "q_good": "😊 Хорошо",
+        "q_normal": "😐 Нормально",
+        "q_poor": "🥱 Плохо"
+    }
 }
+
+def get_quality_title(profile, quality_key):
+    lang = profile.get("lang", "uk")
+    return QUALITY_MAP.get(lang, QUALITY_MAP["uk"]).get(
+        quality_key, QUALITY_MAP["uk"].get(quality_key, quality_key)
+    )
 
 # FSM Стани
 class OnboardingState(StatesGroup):
@@ -272,16 +318,36 @@ class SleepForm(StatesGroup):
     waiting_for_ai_question = State()
 
 # --- Збереження та завантаження JSON ---
+# Блокування захищає від race condition при одночасних користувачах,
+# а атомарний запис (temp-файл + os.replace) гарантує, що збій під час
+# запису не пошкодить базу всіх користувачів.
+_data_lock = threading.RLock()
+
 def load_user_data():
-    try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+    with _data_lock:
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
 
 def save_user_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    with _data_lock:
+        dir_name = os.path.dirname(os.path.abspath(DATA_FILE))
+        # Пишемо у тимчасовий файл у тій самій директорії, потім атомарно замінюємо
+        fd, tmp_path = tempfile.mkstemp(prefix=".sleep_ai_", suffix=".tmp", dir=dir_name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, DATA_FILE)
+        except Exception:
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            raise
 
 def get_user_profile(user_id):
     data = load_user_data()
@@ -306,6 +372,8 @@ def update_user_profile(user_id, user_dict):
     data = load_user_data()
     data[str(user_id)] = user_dict
     save_user_data(data)
+
+save_user_profile = update_user_profile
 
 def get_text(profile, key, **kwargs):
     lang = profile.get("lang", "uk")
@@ -383,6 +451,79 @@ def generate_real_ai_answer(profile, question):
 
     return "🤖 **AI Sleep Advisor:** Для покращення якості сну дотримуйтесь регулярного режиму, провітрюйте кімнату перед сном та вимикайте екрани за годину до відпочинку!"
 
+def build_personal_course_fallback(profile):
+    """Персоналізований курс без ШІ (якщо провайдер g4f недоступний)."""
+    lang = profile.get("lang", "uk")
+    dis_title = DISRUPTORS.get(lang, DISRUPTORS["uk"]).get(profile.get("disruptor", "dis_phone"), "Телефон / Гаджети")
+    goal_title = GOALS.get(lang, GOALS["uk"]).get(profile.get("goal", "goal_quality"), "Покращити якість сну")
+
+    titles = {
+        1: f"☀️ День 1: Світловий біохакінг & нейтралізація «{dis_title}»",
+        2: "🧘 День 2: Техніка US Navy (засинання за 120 секунд)",
+        3: "🫁 День 3: Дихальна формула 4-7-8 проти кортизолу",
+        4: "☕ День 4: Кофеїнове вікно & вечірні перекуси",
+        5: "📝 День 5: «Коробка тривог» та правило 20 хвилин",
+        6: f"❄️ День 6: Мікроклімат спальні під мету «{goal_title}»",
+        7: "📜 День 7: Ваш персональний вечірній ритуал"
+    }
+    return {d: {"title": titles[d], "text": BOT_COURSE_DAYS[d]["text"]} for d in range(1, 8)}
+
+def generate_personal_course(profile):
+    """Генерує ШІ персональний 7-денний курс під профіль користувача."""
+    lang = profile.get("lang", "uk")
+    age_key = profile.get("age_group", "age_young")
+    age_info = AGE_GROUPS.get(lang, AGE_GROUPS["uk"]).get(age_key, AGE_GROUPS["uk"]["age_young"])
+    dis_title = DISRUPTORS.get(lang, DISRUPTORS["uk"]).get(profile.get("disruptor", "dis_phone"), "N/A")
+    goal_title = GOALS.get(lang, GOALS["uk"]).get(profile.get("goal", "goal_quality"), "N/A")
+    bt_title = BEDTIME_OPTIONS.get(lang, BEDTIME_OPTIONS["uk"]).get(profile.get("usual_bedtime", "bt_normal"), "N/A")
+    wt_title = WAKETIME_OPTIONS.get(lang, WAKETIME_OPTIONS["uk"]).get(profile.get("usual_waketime", "wt_normal"), "N/A")
+
+    lang_names = {"uk": "Ukrainian (українська)", "en": "English", "ru": "Russian (русский)"}
+    selected_lang = lang_names.get(lang, "Ukrainian")
+
+    prompt = (
+        f"Ти — сомнолог, який складає ПЕРСОНАЛЬНИЙ 7-денний курс швидкого засинання та якісного сну.\n\n"
+        f"Профіль користувача:\n"
+        f"- Вікова категорія: {age_info['title']} (норма сну {age_info['target_hours']} год)\n"
+        f"- Звичний час засинання: {bt_title}\n"
+        f"- Звичний час підйому: {wt_title}\n"
+        f"- Головна мета: {goal_title}\n"
+        f"- Головна перешкода сну: {dis_title}\n\n"
+        f"Склади рівно 7 днів. Кожен день — окрема практична вправа з наростанням складності, "
+        f"обов'язково враховуй перешкоду «{dis_title}» та мету «{goal_title}».\n\n"
+        f"Поверни ВИКЛЮЧНО валідний JSON-масив з 7 об'єктів, без пояснень і без markdown-огорожі:\n"
+        f'[{{"title": "☀️ День 1: коротка назва (до 55 символів, починається з емодзі)", '
+        f'"text": "🎓 **Урок 1: назва**\\n\\n🧠 **Чому це працює:** 1-2 речення науки.\\n\\n'
+        f'⚡ **Практичне завдання на сьогодні:**\\n1️⃣ крок\\n2️⃣ крок\\n3️⃣ крок"}}, ...]\n\n'
+        f"Вимоги: поле text — 70-130 слів, Markdown (**жирний**), емодзі, тільки конкретні дії. "
+        f"У title кожного дня — РІЗНЕ тематичне емодзі на початку (не повторюй одне й те саме, напр. ☀️🧘🫁☕📝❄️📜). "
+        f"Мова всього тексту обов'язково: {selected_lang}. Не використовуй символ підкреслення."
+    )
+
+    try:
+        response = ai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        content = (response.choices[0].message.content or "").strip()
+        start, end = content.find("["), content.rfind("]")
+        if start != -1 and end > start:
+            days = json.loads(content[start:end + 1])
+            if isinstance(days, list) and len(days) >= 7:
+                course = {}
+                for i, day in enumerate(days[:7], start=1):
+                    title = str(day.get("title", "")).strip()
+                    text = str(day.get("text", "")).strip()
+                    if len(title) < 5 or len(text) < 60:
+                        raise ValueError(f"День {i}: замало контенту від ШІ")
+                    course[i] = {"title": title[:90], "text": text}
+                logging.info(f"AI course generated for goal={goal_title}, disruptor={dis_title}")
+                return course
+    except Exception as e:
+        logging.error(f"AI Course Generation Error: {e}")
+
+    return build_personal_course_fallback(profile)
+
 def generate_ai_deep_analysis_fallback(profile, duration, quality, bedtime_str, waketime_str):
     lang = profile.get("lang", "uk")
     age_key = profile.get("age_group", "age_young")
@@ -419,21 +560,86 @@ def generate_ai_deep_analysis_fallback(profile, duration, quality, bedtime_str, 
             f"⚡ **Состояние ЦНС и Энергии:** {cns_text}"
         )
 
-# --- ГОЛОВНЕ МЕНЮ МОВ —--
+# --- ГОЛОВНЕ МЕНЮ БОТА ---
 def get_main_keyboard(profile, is_sleeping=False):
     lang = profile.get("lang", "uk")
     s = STRINGS.get(lang, STRINGS["uk"])
+    is_premium = profile.get("is_premium", False)
+
+    # Якщо курс не оплачено — показуємо лише кнопки купівлі та профілю
+    if not is_premium:
+        return ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text="💳 Придбати курс (99 грн)")],
+                [KeyboardButton(text=s.get("btn_profile", "👤 Профіль"))]
+            ],
+            resize_keyboard=True
+        )
 
     sleep_btn = KeyboardButton(text=s["btn_wake"]) if is_sleeping else KeyboardButton(text=s["btn_sleep"])
     kb = ReplyKeyboardMarkup(
         keyboard=[
             [sleep_btn],
+            [KeyboardButton(text=s["btn_course"]), KeyboardButton(text=s["btn_checklist"])],
             [KeyboardButton(text=s["btn_ask_ai"]), KeyboardButton(text=s["btn_stats"])],
             [KeyboardButton(text=s["btn_caffeine"]), KeyboardButton(text=s["btn_profile"])]
         ],
         resize_keyboard=True
     )
     return kb
+
+# --- ПЕЙВОЛ: 99 грн за 7-денний курс ---
+def get_course_days(profile):
+    """Персональний курс від ШІ, якщо він є; інакше — базова програма."""
+    personal = profile.get("personal_course")
+    if isinstance(personal, dict) and len(personal) >= 7:
+        try:
+            course = {int(k): v for k, v in personal.items()}
+            if all(d in course and course[d].get("title") and course[d].get("text") for d in range(1, 8)):
+                return course
+        except (ValueError, TypeError, AttributeError):
+            pass
+    return BOT_COURSE_DAYS
+
+def build_paywall(profile, locked_feature=False):
+    """Єдиний екран оплати для бота (99 грн, одноразово)."""
+    course = get_course_days(profile)
+    days_locked_str = "\n".join([f"🔒 **{course[d]['title']}**" for d in range(1, 8)])
+
+    header = (
+        "🔒 **Ця функція доступна лише після оплати курсу.**\n\n"
+        if locked_feature else ""
+    )
+    text = (
+        f"{header}"
+        f"👑 **Ваш Персональний 7-Денний Курс Сну**\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"🎯 **Ваша програма, складена ШІ:**\n"
+        f"{days_locked_str}\n\n"
+        f"💎 **Після оплати відкриється:**\n"
+        f"• Усі 7 персональних уроків із практичними вправами\n"
+        f"• Трекер сну, статистика та ШІ-консультант\n"
+        f"• Аудіо-релакс та вечірній чек-лист засинання\n\n"
+        f"🏷️ **Вартість:** **99 грн** *(одноразовий платіж • доступ назавжди)*"
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 Придбати доступ за 99 грн (Monobank / Card)", callback_data="pay_mono_link")]
+    ])
+    return text, kb
+
+async def require_premium(message: types.Message):
+    """True — доступ є. False — показано пейвол, хендлер має вийти."""
+    profile = get_user_profile(message.from_user.id)
+    if profile.get("is_premium", False):
+        return True
+
+    text, kb = build_paywall(profile, locked_feature=True)
+    await message.answer(text, reply_markup=kb, parse_mode="Markdown")
+    await message.answer(
+        "🔒 Меню нижче доступне до оплати:",
+        reply_markup=get_main_keyboard(profile, is_sleeping=False)
+    )
+    return False
 
 # --- ONBOARDING: КРОК 1 (ВИБІР МОВИ) ---
 @dp.message(CommandStart())
@@ -613,24 +819,53 @@ async def process_onboarding_disruptor(callback: CallbackQuery, state: FSMContex
     await state.clear()
 
     age_info = AGE_GROUPS.get(lang, AGE_GROUPS["uk"]).get(age_key, AGE_GROUPS["uk"]["age_young"])
-    bt_title = BEDTIME_OPTIONS.get(lang, BEDTIME_OPTIONS["uk"]).get(bt_key, "N/A")
-    wt_title = WAKETIME_OPTIONS.get(lang, WAKETIME_OPTIONS["uk"]).get(wt_key, "N/A")
-    goal_title = GOALS.get(lang, GOALS["uk"]).get(goal_key, "N/A")
-    dis_title = DISRUPTORS.get(lang, DISRUPTORS["uk"]).get(dis_key, "N/A")
+    goal_title = GOALS.get(lang, GOALS["uk"]).get(goal_key, "Покращити якість сну")
+    dis_title = DISRUPTORS.get(lang, DISRUPTORS["uk"]).get(dis_key, "Телефон / Гаджети")
 
-    s = STRINGS.get(lang, STRINGS["uk"])
-
+    # Первинне сповіщення про роботу ШІ
     await callback.message.delete()
+    loading_msg = await callback.message.answer(
+        f"🧠 **ШІ аналізує ваші відповіді...**\n"
+        f"<i>Складаємо для вас Персональний 7-Денний Курс Сну під категорію «{age_info['title']}» та перешкоду «{dis_title}»...</i>",
+        parse_mode="HTML"
+    )
+
+    # ШІ складає персональний курс саме під відповіді цього користувача
+    course = await asyncio.to_thread(generate_personal_course, profile)
+    profile["personal_course"] = {str(day): lesson for day, lesson in course.items()}
+    profile["course_generated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    update_user_profile(callback.from_user.id, profile)
+
+    days_locked_str = "\n".join([f"🔒 **{course[d]['title']}**" for d in range(1, 8)])
+
+    paywall_text = (
+        f"✨ **ШІ сформував ваш Персональний 7-Денний Курс Сну!**\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📊 **Аналіз вашого профілю:**\n"
+        f"• Категорія: **{age_info['title']}**\n"
+        f"• Мета: **{goal_title}**\n"
+        f"• Головна перешкода: **{dis_title}**\n\n"
+        f"🎯 **Згенерована персоналізована програма:**\n"
+        f"{days_locked_str}\n\n"
+        f"🔒 **Доступ закритий.** Без оплати пройти ваш персональний курс неможливо.\n"
+        f"Щоб відкрити всі 7 днів уроків, трекер сну, ШІ-консультанта та чек-лист, придбайте доступ.\n\n"
+        f"🏷️ **Вартість курсу:** **99 грн** *(одноразовий платіж • доступ назавжди)*"
+    )
+
+    buttons = [
+        [InlineKeyboardButton(text="💳 Придбати доступ за 99 грн (Monobank / Card)", callback_data="pay_mono_link")]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    try:
+        await loading_msg.delete()
+    except Exception:
+        pass
+
+    await callback.message.answer(paywall_text, reply_markup=kb, parse_mode="Markdown")
+    # Відображення обмеженої клавіатури до оплати
     await callback.message.answer(
-        f"{s['profile_created']}\n\n"
-        f"🌐 Language / Мова: **{LANGUAGES.get(lang, 'Українська')}**\n"
-        f"👤 Category: **{age_info['title']}**\n"
-        f"💤 Target sleep: **{age_info['target_hours']} h / ніч / hrs**\n"
-        f"🌙 Bedtime: **{bt_title}**\n"
-        f"☀️ Waketime: **{wt_title}**\n"
-        f"🎯 Goal: **{goal_title}**\n"
-        f"⚠️ Disruptor: **{dis_title}**\n\n"
-        f"🤖 AI Sleep Assistant ready!",
+        "🔒 **Усі функції заблоковано до оплати.** Скористайтеся меню нижче:",
         reply_markup=get_main_keyboard(profile, is_sleeping=False),
         parse_mode="Markdown"
     )
@@ -653,6 +888,9 @@ async def safe_edit_message(msg: types.Message, text: str, parse_mode: str = "Ma
 # --- 🌙 ЛЯГАЮ СПАТИ / ☀️ Я ПРОКИНУВСЯ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_sleep"], STRINGS["en"]["btn_sleep"], STRINGS["ru"]["btn_sleep"]]))
 async def process_bedtime(message: types.Message):
+    if not await require_premium(message):
+        return
+
     profile = get_user_profile(message.from_user.id)
     if profile.get("active_sleep_start"):
         await message.answer(get_text(profile, "already_sleeping"), parse_mode="Markdown")
@@ -671,6 +909,9 @@ async def process_bedtime(message: types.Message):
 
 @dp.message(F.text.in_([STRINGS["uk"]["btn_wake"], STRINGS["en"]["btn_wake"], STRINGS["ru"]["btn_wake"]]))
 async def process_waketime(message: types.Message, state: FSMContext):
+    if not await require_premium(message):
+        return
+
     profile = get_user_profile(message.from_user.id)
     start_iso = profile.get("active_sleep_start")
 
@@ -731,6 +972,9 @@ async def process_waketime(message: types.Message, state: FSMContext):
 # --- ☕ КОФЕЇНОВИЙ ТАЙМЕР ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_caffeine"], STRINGS["en"]["btn_caffeine"], STRINGS["ru"]["btn_caffeine"]]))
 async def process_caffeine_menu(message: types.Message):
+    if not await require_premium(message):
+        return
+
     profile = get_user_profile(message.from_user.id)
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -804,12 +1048,18 @@ async def show_profile(message: types.Message, state: FSMContext):
 
 @dp.callback_query(F.data == "re_onboarding")
 async def re_onboarding(callback: CallbackQuery, state: FSMContext):
-    await callback.message.delete()
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
     await cmd_start(callback.message, state)
 
 # --- 📊 СТАТИСТИКА & БОРГ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_stats"], STRINGS["en"]["btn_stats"], STRINGS["ru"]["btn_stats"]]))
 async def process_stats(message: types.Message):
+    if not await require_premium(message):
+        return
+
     profile = get_user_profile(message.from_user.id)
     lang = profile.get("lang", "uk")
     logs = profile.get("logs", [])
@@ -837,6 +1087,9 @@ async def process_stats(message: types.Message):
 # --- ⏱️ КАЛЬКУЛЯТОР ЦИКЛІВ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_cycles"], STRINGS["en"]["btn_cycles"], STRINGS["ru"]["btn_cycles"]]))
 async def process_cycles(message: types.Message):
+    if not await require_premium(message):
+        return
+
     now = datetime.now()
     text = f"⏱️ **Sleep Cycle Calculator (90 min)**\n\nIf you fall asleep at **{now.strftime('%H:%M')}**, best wake up times:\n\n"
     cycles = [(3, 4.5), (4, 6.0), (5, 7.5), (6, 9.0)]
@@ -848,6 +1101,9 @@ async def process_cycles(message: types.Message):
 # --- 📜 ЖУРНАЛ СНУ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_journal"], STRINGS["en"]["btn_journal"], STRINGS["ru"]["btn_journal"]]))
 async def process_journal(message: types.Message):
+    if not await require_premium(message):
+        return
+
     profile = get_user_profile(message.from_user.id)
     logs = profile.get("logs", [])
     if not logs:
@@ -863,6 +1119,9 @@ async def process_journal(message: types.Message):
 # --- 🧘 ВПРАВА 4-7-8 ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_breath"], STRINGS["en"]["btn_breath"], STRINGS["ru"]["btn_breath"]]))
 async def process_breathing(message: types.Message):
+    if not await require_premium(message):
+        return
+
     text = (
         "🧘 **4-7-8 Breathing Technique / Техніка 4-7-8:**\n\n"
         "1️⃣ **Inhale** / Вдих (4 sec)\n"
@@ -875,6 +1134,9 @@ async def process_breathing(message: types.Message):
 # --- 💡 ПОРАДИ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_tips"], STRINGS["en"]["btn_tips"], STRINGS["ru"]["btn_tips"]]))
 async def process_tips(message: types.Message):
+    if not await require_premium(message):
+        return
+
     text = (
         "💡 **Sleep Hygiene Tips / Поради:**\n\n"
         "📱 **Screens:** Turn off devices 30-45 mins before sleep.\n"
@@ -884,9 +1146,616 @@ async def process_tips(message: types.Message):
     )
     await message.answer(text, parse_mode="Markdown")
 
+# --- 🎓 7-ДЕННИЙ ІНТЕНСИВ СНУ ТА ВЕЧІРНІЙ ЧЕК-ЛИСТ ---
+BOT_COURSE_DAYS = {
+    1: {
+        "title": "☀️ День 1: Світловий біохакінг & Мелатонін",
+        "text": (
+            "🎓 **Урок 1: Світловий біохакінг & Мелатонін**\n\n"
+            "🧠 **Чому ми важко засинаємо?**\n"
+            "Гормон сну *мелатонін* виділяється епіфізом тільки в темряві. Яскраве синє світло екранів смартфонів та лампочок блокує виділення мелатоніну майже на 80%!\n\n"
+            "⚡ **Практичне завдання на сьогодні:**\n"
+            "1️⃣ **Вранці:** Отримайте 10-15 хв сонячного світла безпосередньо після підйому (перезапуск біологічного годинника).\n"
+            "2️⃣ **Ввечері:** За 45 хв до сну вимкніть яскраве освітлення, увімкніть 'Night Shift' на телефоні та відкладіть екрани."
+        )
+    },
+    2: {
+        "title": "🧘 День 2: US Navy 2-Min Technique",
+        "text": (
+            "🎓 **Урок 2: Військова техніка засинання (US Navy)**\n\n"
+            "🧘 **Засинай за 120 секунд в будь-яких умовах:**\n"
+            "1️⃣ **Розслаблення обличчя:** Заплющте очі, розслабте чоло, щелепу та язик.\n"
+            "2️⃣ **Опустіть плечі:** Дозвольте плечам повністю провалитися в матрац.\n"
+            "3️⃣ **Видихніть:** Повністю розслабте груди та ноги від стегон до ступень.\n"
+            "4️⃣ **Очистіть розум:** Уявіть себе в човні на тихому озері під зорями. Повторюйте: *'Не думай, не думай, не думай'* (10 сек)."
+        )
+    },
+    3: {
+        "title": "🫁 День 3: Техніка 4-7-8 & Спокій",
+        "text": (
+            "🎓 **Урок 3: Сповільнення серцевого ритму (4-7-8)**\n\n"
+            "🫁 **Секрет активації вагусного нерва:**\n"
+            "1️⃣ Вдих носом — **4 секунди**\n"
+            "2️⃣ Затримайте дихання — **7 секунд**\n"
+            "3️⃣ Повільний видих ротом — **8 секунд**\n\n"
+            "✨ Повторіть 4 цикли. Це знижує пульс та рівень кортизолу за 2 хвилини!"
+        )
+    },
+    4: {
+        "title": "☕ День 4: Кофеїнове вікно & Вечеря",
+        "text": (
+            "🎓 **Урок 4: Кофеїновий тайм-аут & Вечеря**\n\n"
+            "☕ **Період напіввиведення кофеїну = 6 годин!**\n"
+            "• Остання чашка кави — не пізніше ніж за 7-8 годин до сну.\n"
+            "• Вечеря за 2.5-3 години до сну (уникайте важкого жирного м'яса).\n"
+            "• Перекус: ромашковий чай, жменя мигдалю або банан."
+        )
+    },
+    5: {
+        "title": "📝 День 5: Правило 20 хв & 'Коробка тривог'",
+        "text": (
+            "🎓 **Урок 5: Правило 20 хвилин & 'Коробка тривог'**\n\n"
+            "💡 **Якщо не засинається понад 20 хв:**\n"
+            "Встаньте з ліжка, сядьте в крісло при тьмяному світлі та почитайте книгу. Повертайтеся в ліжко тільки при появі сонливості!\n\n"
+            "📝 **'Коробка тривог' (Brain Dump):**\n"
+            "Випишіть усі тривожні думки та справи на завтра в блокнот за 1 годину до сну."
+        )
+    },
+    6: {
+        "title": "❄️ День 6: Мікроклімат спальні (18-20°C)",
+        "text": (
+            "🎓 **Урок 6: Мікроклімат спальні & Глибокий сон**\n\n"
+            "🌡️ **Температура 18-20°C:** Для засинання температура тіла має впасти на 1°C.\n"
+            "💨 **Провітрювання:** 10 хвилин перед сном.\n"
+            "🕶️ **Повна темрява:** Маска для сну або штори Blackout.\n"
+            "🛁 **Теплий душ за 1 год до сну:** Прискорює охолодження тіла після виходу з ванної."
+        )
+    },
+    7: {
+        "title": "📜 День 7: Персональний ритуал сну",
+        "text": (
+            "🎓 **Урок 7: Персональний вечірній ритуал & Фінал**\n\n"
+            "🎉 **Вітаємо! Ви завершили 7-денний інтенсив сну!**\n\n"
+            "✨ **Ваш вечірній чек-лист перед сном:**\n"
+            "✅ Провітрив спальню (18-20°C)\n"
+            "✅ Вимкнув екрани за 45 хв\n"
+            "✅ Виписав тривожні думки в блокнот\n"
+            "✅ Виконав 4-7-8 дихання та US Navy релаксацію"
+        )
+    }
+}
+
+@dp.message(F.text.in_([STRINGS["uk"]["btn_course"], STRINGS["en"]["btn_course"], STRINGS["ru"]["btn_course"]]))
+async def process_course_main(message: types.Message):
+    profile = get_user_profile(message.from_user.id)
+    is_premium = profile.get("is_premium", False)
+
+    if not is_premium:
+        paywall_text, kb = build_paywall(profile)
+        await message.answer(paywall_text, reply_markup=kb, parse_mode="Markdown")
+        return
+
+    # User IS Premium
+    completed = profile.get("course_completed", [])
+    count = len(completed)
+    percent = int((count / 7) * 100)
+    course = get_course_days(profile)
+
+    text = (
+        f"👑 **Ваш Персональний 7-Денний Курс Сну** *(доступ активний)*\n\n"
+        f"📊 Ваш прогрес: **{count}/7 днів** ({percent}%)\n\n"
+        f"Оберіть день курсу для проходження практичного уроку:"
+    )
+
+    buttons = []
+    for day in range(1, 8):
+        icon = "✅" if day in completed else "📘"
+        buttons.append([InlineKeyboardButton(text=f"{icon} {course[day]['title']}", callback_data=f"crs_day_{day}")])
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await message.answer(text, reply_markup=kb, parse_mode="Markdown")
+
+@dp.callback_query(F.data == "pay_mono_link")
+async def process_pay_mono_link(callback: CallbackQuery, state: FSMContext):
+    text = (
+        "💳 **Оплата курсу (99 грн) через Monobank**\n\n"
+        "1️⃣ Перейдіть за посиланням та складіть **99 грн** у Банку Monobank.\n"
+        "2️⃣ Зробіть скріншот або фото квитанції про оплату.\n"
+        "3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!"
+    )
+    buttons = [
+        [InlineKeyboardButton(text="🔗 Банка Monobank (Оплатити 99 грн)", url="https://send.monobank.ua")],
+        [InlineKeyboardButton(text="📸 Я оплатив (Надіслати квитанцію)", callback_data="pay_upload_receipt")]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(F.data == "pay_upload_receipt")
+async def process_pay_upload_receipt(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(PaymentReceiptState.waiting_for_receipt)
+    await callback.message.answer(
+        "📸 **Будь ласка, надішліть фото або скріншот квитанції про оплату.**\n\n"
+        "Одразу після відправки вона надійде адміністратору на перевірку ⏳",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
+
+# --- ОБРОБНИК ФОТО КВИТАНЦІЇ ВІД КОРИСТУВАЧА ---
+@dp.message(PaymentReceiptState.waiting_for_receipt, F.photo)
+async def process_receipt_photo(message: types.Message, state: FSMContext):
+    await state.clear()
+    user_id = message.from_user.id
+    raw_uname = message.from_user.username or message.from_user.first_name or f"User_{user_id}"
+    safe_uname = html.escape(str(raw_uname))
+    photo_file_id = message.photo[-1].file_id
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    # Формування повідомлення в адмін-групу
+    admin_caption = (
+        f"💳 <b>Нова квитанція про оплату (99 грн)!</b>\n\n"
+        f"👤 <b>Користувач:</b> @{safe_uname} ({html.escape(message.from_user.first_name)})\n"
+        f"🆔 <b>Telegram ID:</b> <code>{user_id}</code>\n"
+        f"📅 <b>Час надсилання:</b> <i>{now_str}</i>"
+    )
+
+    buttons = [
+        [
+            InlineKeyboardButton(text="✅ Прийняти (Активувати)", callback_data=f"adm_approve_{user_id}"),
+            InlineKeyboardButton(text="❌ Відхилити", callback_data=f"adm_reject_{user_id}")
+        ]
+    ]
+    admin_kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    # Відправка фото квитанції в адмін-групу
+    try:
+        await bot.send_photo(chat_id=ADMIN_GROUP_ID, photo=photo_file_id, caption=admin_caption, reply_markup=admin_kb, parse_mode="HTML")
+    except Exception as e:
+        logging.error(f"Failed to send receipt to admin group: {e}")
+        # Запасний варіант відправки особисто адміну
+        for admin_id in ADMIN_IDS:
+            try:
+                await bot.send_photo(chat_id=admin_id, photo=photo_file_id, caption=admin_caption, reply_markup=admin_kb, parse_mode="HTML")
+            except Exception:
+                pass
+
+    await message.answer(
+        "✅ **Квитанцію успішно отримано!**\n\n"
+        "Вона відправлена адміністратору на перевірку. Доступ до курсу буде активовано протягом декількох хвилин ⏳",
+        parse_mode="Markdown"
+    )
+
+@dp.message(PaymentReceiptState.waiting_for_receipt)
+async def process_receipt_not_photo(message: types.Message):
+    await message.answer("⚠️ **Будь ласка, прикріпіть саме фотографію або скріншот квитанції!**", parse_mode="Markdown")
+
+# --- ОБРОБНИКИ КНОПОК ПРИЙНЯТИ / ВІДХИЛИТИ В АДМІН-ГРУПІ ---
+@dp.callback_query(F.data.startswith("adm_approve_"))
+async def process_admin_approve_payment(callback: CallbackQuery):
+    target_user_id = int(callback.data.replace("adm_approve_", "").strip())
+    admin_name = callback.from_user.username or callback.from_user.first_name
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    # Активація доступу
+    profile = get_user_profile(target_user_id)
+    profile["is_premium"] = True
+    profile["purchased_at"] = f"{now_str} (Receipt Approved by @{admin_name})"
+    save_user_profile(target_user_id, profile)
+
+    # Оновлення повідомлення в групі
+    orig_caption = callback.message.caption or ""
+    new_caption = orig_caption + f"\n\n✅ <b>ПІДТВЕРДЖЕНО АДМІНОМ</b> (@{html.escape(str(admin_name))})"
+    try:
+        await callback.message.edit_caption(caption=new_caption, reply_markup=None, parse_mode="HTML")
+    except Exception:
+        pass
+
+    # Повідомлення користувачу в приватні повідомлення з розблокованою клавіатурою
+    try:
+        await bot.send_message(
+            chat_id=target_user_id,
+            text="🎉 **Вітаємо! Вашу оплату 99 грн підтверджено!**\n\n"
+                 "Вам надано повний доступ до всіх функцій та 7-денного інтенсиву сну «Засинай за 5 хвилин». Обирайте розділ меню нижче!",
+            reply_markup=get_main_keyboard(profile, is_sleeping=False),
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        logging.error(f"Failed to notify user {target_user_id}: {e}")
+
+    await callback.answer("✅ Оплату підтверджено та доступ активовано!", show_alert=True)
+
+@dp.callback_query(F.data.startswith("adm_reject_"))
+async def process_admin_reject_payment(callback: CallbackQuery):
+    target_user_id = int(callback.data.replace("adm_reject_", "").strip())
+    admin_name = callback.from_user.username or callback.from_user.first_name
+
+    # Оновлення повідомлення в групі
+    orig_caption = callback.message.caption or ""
+    new_caption = orig_caption + f"\n\n❌ <b>ВІДХИЛЕНО АДМІНОМ</b> (@{html.escape(str(admin_name))})"
+    try:
+        await callback.message.edit_caption(caption=new_caption, reply_markup=None, parse_mode="HTML")
+    except Exception:
+        pass
+
+    # Повідомлення користувачу в приватні повідомлення
+    try:
+        await bot.send_message(
+            chat_id=target_user_id,
+            text="❌ **Вашу квитанцію про оплату не підтверджено.**\n\n"
+                 "Будь ласка, перевірте реквізити та суму (99 грн) або зверніться до підтримки.",
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        logging.error(f"Failed to notify user {target_user_id}: {e}")
+
+    await callback.answer("❌ Оплату відхилено", show_alert=True)
+
+@dp.message(F.text == "💳 Придбати курс (99 грн)")
+async def cmd_buy_course_btn(message: types.Message):
+    profile = get_user_profile(message.from_user.id)
+    if profile.get("is_premium", False):
+        await message.answer("🎉 **У вас вже активовано доступ до курсу!**", reply_markup=get_main_keyboard(profile), parse_mode="Markdown")
+        return
+
+    text = (
+        "💳 **Оплата курсу (99 грн) через Monobank**\n\n"
+        "1️⃣ Перейдіть за посиланням та складіть **99 грн** у Банку Monobank.\n"
+        "2️⃣ Зробіть скріншот або фото квитанції про оплату.\n"
+        "3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!"
+    )
+    buttons = [
+        [InlineKeyboardButton(text="🔗 Банка Monobank (Оплатити 99 грн)", url="https://send.monobank.ua")],
+        [InlineKeyboardButton(text="📸 Я оплатив (Надіслати квитанцію)", callback_data="pay_upload_receipt")]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await message.answer(text, reply_markup=kb, parse_mode="Markdown")
+
+# --- ГОЛОВНА АДМІН-ПАНЕЛЬ (/admin) ---
+def build_admin_dashboard():
+    all_data = load_user_data()
+    total_users = len(all_data)
+    buyers = [uid for uid, p in all_data.items() if p.get("is_premium", False)]
+    total_buyers = len(buyers)
+    revenue = total_buyers * 99
+    conversion = round((total_buyers / total_users * 100), 1) if total_users > 0 else 0
+    total_logs = sum(len(p.get("logs", [])) for p in all_data.values())
+
+    text = (
+        f"👑 <b>Панель Управління Адміністратора</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📊 <b>Аналітика Проєкту:</b>\n"
+        f"• 👥 Всього користувачів: <b>{total_users}</b>\n"
+        f"• 💳 Продано курсів (99 грн): <b>{total_buyers}</b>\n"
+        f"• 💰 Загальний дохід: <b>{revenue} грн</b>\n"
+        f"• 📈 Конверсія в покупку: <b>{conversion}%</b>\n"
+        f"• 📝 Записів сну в системі: <b>{total_logs}</b>\n\n"
+        f"Оберіть потрібний розділ меню нижче:"
+    )
+
+    buttons = [
+        [InlineKeyboardButton(text="👥 Список покупців", callback_data="admin_buyers")],
+        [InlineKeyboardButton(text="📢 Масова розсилка", callback_data="admin_broadcast_info"), InlineKeyboardButton(text="⚡ Видати доступ", callback_data="admin_grant_info")],
+        [InlineKeyboardButton(text="🔄 Оновити дані", callback_data="admin_refresh")]
+    ]
+    return text, InlineKeyboardMarkup(inline_keyboard=buttons)
+
+@dp.message(Command("admin"))
+async def cmd_admin(message: types.Message):
+    if message.from_user.id not in ADMIN_IDS:
+        await message.answer("⛔ <b>Доступ заборонено.</b> Команда доступна лише власникові бота.", parse_mode="HTML")
+        return
+    text, kb = build_admin_dashboard()
+    await message.answer(text, reply_markup=kb, parse_mode="HTML")
+
+@dp.callback_query(F.data == "admin_refresh")
+async def process_admin_refresh(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("⛔ Немає доступу", show_alert=True)
+        return
+    text, kb = build_admin_dashboard()
+    try:
+        await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    except Exception:
+        pass
+    await callback.answer("🔄 Панель оновлено!", show_alert=False)
+
+@dp.callback_query(F.data == "admin_buyers")
+async def process_admin_buyers(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("⛔ Немає доступу", show_alert=True)
+        return
+
+    all_data = load_user_data()
+    buyers_list = []
+    for uid, prof in all_data.items():
+        if prof.get("is_premium", False):
+            raw_uname = str(prof.get("username", f"User_{uid}"))
+            safe_uname = html.escape(raw_uname)
+            pdate = html.escape(str(prof.get("purchased_at", "Невідомо")))
+            progress = len(prof.get("course_completed", []))
+            buyers_list.append(f"• <b>@{safe_uname}</b> (ID: <code>{uid}</code>)\n  📅 <i>{pdate}</i> | 📊 Прогрес: <b>{progress}/7 днів</b>")
+
+    content = "\n\n".join(buyers_list) if buyers_list else "Поки немає жодного покупця."
+    text = f"📋 <b>Детальний список покупців ({len(buyers_list)}):</b>\n\n{content}"
+    
+    buttons = [[InlineKeyboardButton(text="🔙 Назад в Адмінку", callback_data="admin_refresh")]]
+    await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
+    await callback.answer()
+
+@dp.callback_query(F.data == "admin_grant_info")
+async def process_admin_grant_info(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("⛔ Немає доступу", show_alert=True)
+        return
+
+    text = (
+        "⚡ <b>Управління доступом користувачів</b>\n\n"
+        "🟢 <b>Видати доступ до курсу:</b>\n"
+        "<code>/grant TELEGRAM_USER_ID</code>\n"
+        "<i>(наприклад: /grant 1373248099)</i>\n\n"
+        "🔴 <b>Забрати (анулювати) доступ:</b>\n"
+        "<code>/revoke TELEGRAM_USER_ID</code>\n"
+        "<i>(наприклад: /revoke 1373248099)</i>"
+    )
+    buttons = [[InlineKeyboardButton(text="🔙 Назад в Адмінку", callback_data="admin_refresh")]]
+    await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
+    await callback.answer()
+
+@dp.callback_query(F.data == "admin_broadcast_info")
+async def process_admin_broadcast_info(callback: CallbackQuery):
+    if callback.from_user.id not in ADMIN_IDS:
+        await callback.answer("⛔ Немає доступу", show_alert=True)
+        return
+
+    text = (
+        "📢 **Масова розсилка повідомлень**\n\n"
+        "Ви можете відправити сповіщення усім користувачам бота за допомогою команди:\n\n"
+        "`/broadcast Ваше повідомлення для розсилки`\n\n"
+        "Наприклад:\n`/broadcast 🔥 Знижка на курс сну! Напишіть /course для деталей.`"
+    )
+    buttons = [[InlineKeyboardButton(text="🔙 Назад в Адмінку", callback_data="admin_refresh")]]
+    await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="Markdown")
+    await callback.answer()
+
+# --- КОМАНДИ ГРАНТУ ТА РОЗСИЛКИ ---
+@dp.message(F.text.startswith("/grant"))
+async def cmd_grant(message: types.Message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer("⚠️ Вкажіть Telegram ID користувача, наприклад:\n`/grant 123456789`", parse_mode="Markdown")
+        return
+
+    target_id = parts[1].strip()
+    if not target_id.isdigit():
+        await message.answer(
+            "❌ Некоректний Telegram ID. ID має складатися лише з цифр, наприклад:\n`/grant 123456789`",
+            parse_mode="Markdown",
+        )
+        return
+
+    profile = get_user_profile(target_id)
+    profile["is_premium"] = True
+    profile["purchased_at"] = datetime.now().strftime("%Y-%m-%d %H:%M") + " (Admin Grant)"
+    save_user_profile(target_id, profile)
+    
+    await message.answer(f"✅ Доступ до курсу успішно надано користувачу з ID `{target_id}`!", parse_mode="Markdown")
+
+@dp.message(F.text.startswith("/revoke"))
+async def cmd_revoke(message: types.Message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    parts = message.text.split()
+    if len(parts) < 2:
+        await message.answer("⚠️ Вкажіть Telegram ID користувача для анулювання доступу, наприклад:\n`/revoke 123456789`", parse_mode="Markdown")
+        return
+
+    target_id = parts[1].strip()
+    if not target_id.isdigit():
+        await message.answer(
+            "❌ Некоректний Telegram ID. ID має складатися лише з цифр, наприклад:\n`/revoke 123456789`",
+            parse_mode="Markdown",
+        )
+        return
+
+    profile = get_user_profile(target_id)
+    profile["is_premium"] = False
+    save_user_profile(target_id, profile)
+    
+    await message.answer(f"🚫 **Доступ до курсу успішно анульовано** для користувача з ID `{target_id}`!", parse_mode="Markdown")
+
+@dp.message(F.text.startswith("/broadcast"))
+async def cmd_broadcast(message: types.Message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+    broadcast_text = message.text.replace("/broadcast", "").strip()
+    if not broadcast_text:
+        await message.answer("⚠️ Введіть текст розсилки після команди, наприклад:\n`/broadcast Привіт усім!`", parse_mode="Markdown")
+        return
+
+    all_data = load_user_data()
+    success_count = 0
+    fail_count = 0
+
+    status_msg = await message.answer("🚀 Розсилка розпочата...")
+
+    for uid in all_data.keys():
+        try:
+            await bot.send_message(chat_id=int(uid), text=broadcast_text, parse_mode="Markdown")
+            success_count += 1
+            await asyncio.sleep(0.05)
+        except Exception:
+            fail_count += 1
+
+    await status_msg.edit_text(
+        f"🎉 **Масову розсилку завершено!**\n\n"
+        f"✅ Доставили: **{success_count}** користувачів\n"
+        f"❌ Не доставлено / заблоковано: **{fail_count}**",
+        parse_mode="Markdown"
+    )
+
+def render_course_list(profile):
+    """Список днів персонального курсу з прогресом."""
+    completed = profile.get("course_completed", [])
+    count = len(completed)
+    percent = int((count / 7) * 100)
+    course = get_course_days(profile)
+
+    text = (
+        f"👑 **Ваш Персональний 7-Денний Курс Сну**\n\n"
+        f"📊 Ваш прогрес: **{count}/7 днів** ({percent}%)\n\n"
+        f"Оберіть день курсу для проходження практичного уроку:"
+    )
+    buttons = []
+    for day in range(1, 8):
+        icon = "✅" if day in completed else "📘"
+        buttons.append([InlineKeyboardButton(text=f"{icon} {course[day]['title']}", callback_data=f"crs_day_{day}")])
+
+    return text, InlineKeyboardMarkup(inline_keyboard=buttons)
+
+async def deny_if_not_premium(callback: CallbackQuery, profile):
+    """Блокує доступ до уроків, якщо оплату не підтверджено (або її відкликано)."""
+    if profile.get("is_premium", False):
+        return False
+    await callback.answer("🔒 Доступ до курсу закрито. Придбайте курс за 99 грн.", show_alert=True)
+    text, kb = build_paywall(profile)
+    try:
+        await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
+    except Exception:
+        await callback.message.answer(text, reply_markup=kb, parse_mode="Markdown")
+    return True
+
+@dp.callback_query(F.data.startswith("crs_day_"))
+async def process_course_day_view(callback: CallbackQuery):
+    day_num = int(callback.data.split("_")[2])
+    profile = get_user_profile(callback.from_user.id)
+    if await deny_if_not_premium(callback, profile):
+        return
+
+    completed = profile.get("course_completed", [])
+    is_done = day_num in completed
+
+    course = get_course_days(profile)
+    text = course.get(day_num, course[1])["text"]
+
+    btn_done_text = "✅ Позначити день пройденим" if not is_done else "🎉 Урок пройдено! (Скасувати)"
+    buttons = [
+        [InlineKeyboardButton(text=btn_done_text, callback_data=f"crs_toggle_{day_num}")],
+        [InlineKeyboardButton(text="🔙 До списку уроків", callback_data="crs_back_list")]
+    ]
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("crs_toggle_"))
+async def process_course_day_toggle(callback: CallbackQuery):
+    day_num = int(callback.data.split("_")[2])
+    profile = get_user_profile(callback.from_user.id)
+    if await deny_if_not_premium(callback, profile):
+        return
+
+    if "course_completed" not in profile:
+        profile["course_completed"] = []
+
+    if day_num in profile["course_completed"]:
+        profile["course_completed"].remove(day_num)
+        msg = f"↩️ Позначку Дня {day_num} скасовано."
+    else:
+        profile["course_completed"].append(day_num)
+        msg = f"🎉 Вітаємо! День {day_num} успішно пройдено!"
+
+    save_user_profile(callback.from_user.id, profile)
+    await callback.answer(msg, show_alert=True)
+
+    text, kb = render_course_list(profile)
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
+
+@dp.callback_query(F.data == "crs_back_list")
+async def process_course_back(callback: CallbackQuery):
+    profile = get_user_profile(callback.from_user.id)
+    if await deny_if_not_premium(callback, profile):
+        return
+
+    text, kb = render_course_list(profile)
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
+    await callback.answer()
+
+# --- 📋 ВЕЧІРНІЙ ЧЕК-ЛИСТ ЗА СИНИТИСЯ ---
+@dp.message(F.text.in_([STRINGS["uk"]["btn_checklist"], STRINGS["en"]["btn_checklist"], STRINGS["ru"]["btn_checklist"]]))
+async def process_checklist_main(message: types.Message):
+    if not await require_premium(message):
+        return
+
+    profile = get_user_profile(message.from_user.id)
+    chk = profile.get("evening_checklist", {})
+
+    items = [
+        ("air", "💨 Провітрити спальню (18-20°C)"),
+        ("screens", "📱 Вимкнути екрани за 45 хв до сну"),
+        ("braindump", "📝 'Коробка тривог' (виписати думки)"),
+        ("caffeine", "☕ Без кави за 6 годин до сну"),
+        ("relax", "🧘 4-7-8 / US Navy релаксація")
+    ]
+
+    done_count = sum(1 for key, _ in items if chk.get(key, False))
+    text = (
+        f"📋 **Вечірній Чек-лист Засинання**\n\n"
+        f"Виконано: **{done_count}/5 відміток**\n\n"
+        f"Натискайте кнопки, щоб відмітити виконані кроки вечірнього ритуалу:"
+    )
+
+    buttons = []
+    for key, label in items:
+        status = "✅" if chk.get(key, False) else "⬜"
+        buttons.append([InlineKeyboardButton(text=f"{status} {label}", callback_data=f"chk_toggle_{key}")])
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await message.answer(text, reply_markup=kb, parse_mode="Markdown")
+
+@dp.callback_query(F.data.startswith("chk_toggle_"))
+async def process_checklist_toggle(callback: CallbackQuery):
+    key = callback.data.replace("chk_toggle_", "")
+    profile = get_user_profile(callback.from_user.id)
+    if "evening_checklist" not in profile:
+        profile["evening_checklist"] = {}
+
+    current_val = profile["evening_checklist"].get(key, False)
+    profile["evening_checklist"][key] = not current_val
+    save_user_profile(callback.from_user.id, profile)
+
+    items = [
+        ("air", "💨 Провітрити спальню (18-20°C)"),
+        ("screens", "📱 Вимкнути екрани за 45 хв до сну"),
+        ("braindump", "📝 'Коробка тривог' (виписати думки)"),
+        ("caffeine", "☕ Без кави за 6 годин до сну"),
+        ("relax", "🧘 4-7-8 / US Navy релаксація")
+    ]
+
+    chk = profile.get("evening_checklist", {})
+    done_count = sum(1 for k, _ in items if chk.get(k, False))
+
+    text = (
+        f"📋 **Вечірній Чек-лист Засинання**\n\n"
+        f"Виконано: **{done_count}/5 відміток**\n\n"
+        f"Натискайте кнопки, щоб відмітити виконані кроки вечірнього ритуалу:"
+    )
+
+    buttons = []
+    for k, label in items:
+        status = "✅" if chk.get(k, False) else "⬜"
+        buttons.append([InlineKeyboardButton(text=f"{status} {label}", callback_data=f"chk_toggle_{k}")])
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
+    await callback.answer("Оновлено!")
+
 # --- 🤖 ЗАПИТАТИ ШІ-КОНСУЛЬТАНТА ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_ask_ai"], STRINGS["en"]["btn_ask_ai"], STRINGS["ru"]["btn_ask_ai"]]))
 async def ask_ai_start(message: types.Message, state: FSMContext):
+    if not await require_premium(message):
+        return
+
     profile = get_user_profile(message.from_user.id)
     lang = profile.get("lang", "uk")
     prompt_txt = {
@@ -931,8 +1800,15 @@ async def main():
     await site.start()
     print(f"🌐 Web server bound to port {port}")
 
+    # Прибираємо webhook та скидаємо чергу оновлень, щоб уникнути
+    # TelegramConflictError (коли інший екземпляр опитує того самого бота)
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception as e:
+        logging.warning(f"delete_webhook failed (продовжуємо): {e}")
+
     # Запускаємо polling бота
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 if __name__ == "__main__":
     try:
