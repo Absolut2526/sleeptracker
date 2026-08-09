@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+venv/
+.venv/
+env/
+
+# Logs
+*.log
+bot.log
+
+# Environment / secrets
+.env
+*.env
+
+# OS
+.DS_Store
+
+# Temp
+tewr.txt

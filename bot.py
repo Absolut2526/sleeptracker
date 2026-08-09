@@ -70,10 +70,7 @@ STRINGS = {
         "btn_sleep": "🌙 Лягаю спати",
         "btn_wake": "☀️ Я прокинувся",
         "btn_course": "🎓 7-Денний Інтенсив сну",
-        "btn_checklist": "📋 Вечірній Чек-лист",
         "btn_ask_ai": "🤖 Запитати ШІ-Консультанта",
-        "btn_caffeine": "☕ Кофеїновий таймер",
-        "btn_stats": "📊 ШІ-Статистика & Борг",
         "btn_profile": "👤 Мій Профіль & Налаштування",
         "btn_cycles": "⏱️ Калькулятор циклів",
         "btn_journal": "📜 Журнал сну",
@@ -86,9 +83,7 @@ STRINGS = {
         "already_sleeping": "🌙 Ви вже спите! Коли прокинетеся, натисніть «☀️ Я прокинувся».",
         "not_sleeping": "☀️ Ви ще не вмикали таймер сну. Натисніть «🌙 Лягаю спати».",
         "woke_up_ask_quality": "☀️ Доброго дня / ранку!\n⏱️ Ви проспали **{h} год {m} хв** ({hrs} год).\n\nЯк ви почуваєтеся? Оцініть якість сну:",
-        "log_saved": "✅ **Запис сну збережено!**\n📅 Дата: {date}\n⏱️ Тривалість: **{duration} год** ({bedtime} - {waketime})\n✨ Оцінка: {quality}",
-        "caff_title": "☕ **Кофеїновий калькулятор сну**\n\nО котрій годині ви випили останню порцію кави/енергетика?",
-        "caff_result": "☕ **Аналіз виведення кофеїну:**\n\n⏰ Час вживання: **{time}**\n📉 50% кофеїну в крові до: **{half_life}**\n🟢 Безпечне очищення: о **{clear}**\n\n💡 **Порада ШІ:** Стежте, щоб 6-годинний період напіввиведення кофеїну закінчувався до вашого часу засинання!"
+        "log_saved": "✅ **Запис сну збережено!**\n📅 Дата: {date}\n⏱️ Тривалість: **{duration} год** ({bedtime} - {waketime})\n✨ Оцінка: {quality}"
     },
     "en": {
         "welcome": "👋🌙 Welcome to the **AI Sleep Improvement Assistant**!\n\n📋 **Step 1 of 6:** Choose your preferred language:",
@@ -101,10 +96,7 @@ STRINGS = {
         "btn_sleep": "🌙 Going to sleep",
         "btn_wake": "☀️ I woke up",
         "btn_course": "🎓 7-Day Sleep Course",
-        "btn_checklist": "📋 Evening Checklist",
         "btn_ask_ai": "🤖 Ask AI Advisor",
-        "btn_caffeine": "☕ Caffeine Timer",
-        "btn_stats": "📊 AI Stats & Debt",
         "btn_profile": "👤 Profile & Settings",
         "btn_cycles": "⏱️ Cycle Calculator",
         "btn_journal": "📜 Sleep Journal",
@@ -117,9 +109,7 @@ STRINGS = {
         "already_sleeping": "🌙 You are already sleeping! Press '☀️ I woke up' when you wake up.",
         "not_sleeping": "☀️ You haven't started the timer yet. Press '🌙 Going to sleep'.",
         "woke_up_ask_quality": "☀️ Good day / Morning!\n⏱️ You slept **{h} h {m} m** ({hrs} h).\n\nHow do you feel? Rate your sleep quality:",
-        "log_saved": "✅ **Sleep Log Saved!**\n📅 Date: {date}\n⏱️ Duration: **{duration} h** ({bedtime} - {waketime})\n✨ Rating: {quality}",
-        "caff_title": "☕ **Caffeine Sleep Calculator**\n\nWhat time did you have your last coffee/energy drink?",
-        "caff_result": "☕ **Caffeine Elimination Analysis:**\n\n⏰ Intaken at: **{time}**\n📉 50% caffeine in blood until: **{half_life}**\n🟢 Safe elimination: at **{clear}**\n\n💡 **AI Tip:** Ensure the 6-hour half-life period finishes before your bedtime!"
+        "log_saved": "✅ **Sleep Log Saved!**\n📅 Date: {date}\n⏱️ Duration: **{duration} h** ({bedtime} - {waketime})\n✨ Rating: {quality}"
     },
     "ru": {
         "welcome": "👋🌙 Добро пожаловать в **ИИ-Помощник по улучшению качества сна**!\n\n📋 **Шаг 1 из 6:** Выберите удобный язык общения:",
@@ -132,10 +122,7 @@ STRINGS = {
         "btn_sleep": "🌙 Ложусь спать",
         "btn_wake": "☀️ Я проснулся",
         "btn_course": "🎓 7-Дневный Интенсив сна",
-        "btn_checklist": "📋 Вечерний Чек-лист",
         "btn_ask_ai": "🤖 Спросить ИИ-Консультанта",
-        "btn_caffeine": "☕ Кофеиновый таймер",
-        "btn_stats": "📊 ИИ-Статистика и Долг",
         "btn_profile": "👤 Мой Профиль и Настройки",
         "btn_cycles": "⏱️ Калькулятор циклов",
         "btn_journal": "📜 Журнал сна",
@@ -148,9 +135,7 @@ STRINGS = {
         "already_sleeping": "🌙 Вы уже спите! Когда проснетесь, нажмите «☀️ Я проснулся».",
         "not_sleeping": "☀️ Вы еще не включали таймер сна. Нажмите «🌙 Ложусь спать».",
         "woke_up_ask_quality": "☀️ Доброго дня / утра!\n⏱️ Вы проспали **{h} ч {m} мин** ({hrs} ч).\n\nКак вы себя чувствуете? Оцените качество сна:",
-        "log_saved": "✅ **Запись сна сохранена!**\n📅 Дата: {date}\n⏱️ Длительность: **{duration} ч** ({bedtime} - {waketime})\n✨ Оценка: {quality}",
-        "caff_title": "☕ **Кофеиновый калькулятор сна**\n\nВо сколько вы выпили последнюю порцию кофе/энергетика?",
-        "caff_result": "☕ **Анализ выведения кофеина:**\n\n⏰ Время приема: **{time}**\n📉 50% кофеина в крови до: **{half_life}**\n🟢 Безопасная очистка: в **{clear}**\n\n💡 **Совет ИИ:** Следите, чтобы 6-часовой период полувыведения кофеина заканчивался до вашего времени засыпания!"
+        "log_saved": "✅ **Запись сна сохранена!**\n📅 Дата: {date}\n⏱️ Длительность: **{duration} ч** ({bedtime} - {waketime})\n✨ Оценка: {quality}"
     }
 }
 
@@ -580,9 +565,10 @@ def get_main_keyboard(profile, is_sleeping=False):
     kb = ReplyKeyboardMarkup(
         keyboard=[
             [sleep_btn],
-            [KeyboardButton(text=s["btn_course"]), KeyboardButton(text=s["btn_checklist"])],
-            [KeyboardButton(text=s["btn_ask_ai"]), KeyboardButton(text=s["btn_stats"])],
-            [KeyboardButton(text=s["btn_caffeine"]), KeyboardButton(text=s["btn_profile"])]
+            [KeyboardButton(text=s["btn_course"]), KeyboardButton(text=s["btn_ask_ai"])],
+            [KeyboardButton(text=s["btn_cycles"]), KeyboardButton(text=s["btn_journal"])],
+            [KeyboardButton(text=s["btn_breath"]), KeyboardButton(text=s["btn_tips"])],
+            [KeyboardButton(text=s["btn_profile"])]
         ],
         resize_keyboard=True
     )
@@ -969,50 +955,6 @@ async def process_waketime(message: types.Message, state: FSMContext):
     final_content = f"{saved_msg}\n\n{ai_deep_report}"
     await safe_edit_message(msg, final_content, parse_mode="Markdown")
 
-# --- ☕ КОФЕЇНОВИЙ ТАЙМЕР ---
-@dp.message(F.text.in_([STRINGS["uk"]["btn_caffeine"], STRINGS["en"]["btn_caffeine"], STRINGS["ru"]["btn_caffeine"]]))
-async def process_caffeine_menu(message: types.Message):
-    if not await require_premium(message):
-        return
-
-    profile = get_user_profile(message.from_user.id)
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="14:00", callback_data="caf_14:00"),
-                InlineKeyboardButton(text="18:00", callback_data="caf_18:00"),
-                InlineKeyboardButton(text="22:00", callback_data="caf_22:00")
-            ],
-            [
-                InlineKeyboardButton(text="00:00", callback_data="caf_00:00"),
-                InlineKeyboardButton(text="02:00", callback_data="caf_02:00")
-            ]
-        ]
-    )
-    await message.answer(get_text(profile, "caff_title"), reply_markup=kb, parse_mode="Markdown")
-
-@dp.callback_query(F.data.startswith("caf_"))
-async def process_caffeine_choice(callback: CallbackQuery):
-    profile = get_user_profile(callback.from_user.id)
-    time_str = callback.data.replace("caf_", "")
-    h, m = map(int, time_str.split(":"))
-
-    now = datetime.now()
-    caff_time = datetime(now.year, now.month, now.day, h, m)
-
-    half_life_time = caff_time + timedelta(hours=6)
-    clear_time = caff_time + timedelta(hours=10)
-
-    res_text = get_text(
-        profile, "caff_result",
-        time=time_str,
-        half_life=half_life_time.strftime('%H:%M'),
-        clear=clear_time.strftime('%H:%M')
-    )
-
-    await callback.message.edit_text(res_text, parse_mode="Markdown")
-    await callback.answer()
-
 # --- 👤 ПРОФІЛЬ & НАЛАШТУВАННЯ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_profile"], STRINGS["en"]["btn_profile"], STRINGS["ru"]["btn_profile"]]))
 async def show_profile(message: types.Message, state: FSMContext):
@@ -1053,36 +995,6 @@ async def re_onboarding(callback: CallbackQuery, state: FSMContext):
     except Exception:
         pass
     await cmd_start(callback.message, state)
-
-# --- 📊 СТАТИСТИКА & БОРГ ---
-@dp.message(F.text.in_([STRINGS["uk"]["btn_stats"], STRINGS["en"]["btn_stats"], STRINGS["ru"]["btn_stats"]]))
-async def process_stats(message: types.Message):
-    if not await require_premium(message):
-        return
-
-    profile = get_user_profile(message.from_user.id)
-    lang = profile.get("lang", "uk")
-    logs = profile.get("logs", [])
-    age_info = AGE_GROUPS.get(lang, AGE_GROUPS["uk"]).get(profile.get("age_group", "age_young"), {"title": "N/A", "target_hours": 8.0})
-    target_hrs = age_info["target_hours"]
-
-    if not logs:
-        await message.answer(f"📊 Profile Target: **{target_hrs} h / night**. Log your first sleep using the menu!", parse_mode="Markdown")
-        return
-
-    last_log = logs[0]
-    recent_7 = logs[:7]
-    avg_7 = round(sum(l["duration"] for l in recent_7) / len(recent_7), 1)
-
-    text = (
-        f"📊 **AI Sleep Report / Звіт**\n\n"
-        f"👤 Category: **{age_info['title']}**\n"
-        f"🎯 Target: **{target_hrs} h / night**\n"
-        f"🛌 Last Sleep: **{last_log['duration']} h** ({last_log['quality']})\n"
-        f"📈 7-day average: **{avg_7} h / night**\n"
-    )
-
-    await message.answer(text, parse_mode="Markdown")
 
 # --- ⏱️ КАЛЬКУЛЯТОР ЦИКЛІВ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_cycles"], STRINGS["en"]["btn_cycles"], STRINGS["ru"]["btn_cycles"]]))
@@ -1595,22 +1507,55 @@ async def cmd_broadcast(message: types.Message):
         parse_mode="Markdown"
     )
 
+def get_unlocked_days(profile):
+    """Скільки днів курсу вже розблоковано.
+
+    Логіка: День 1 відкривається одразу після оплати, а кожен наступний день —
+    через добу після попереднього (День 2 наступного дня, День 3 через 2 дні тощо).
+    Отже, кількість розблокованих днів = 1 + (повних діб з моменту оплати),
+    але не більше 7.
+    """
+    purchased_raw = profile.get("purchased_at")
+    if not purchased_raw:
+        # Немає позначки про оплату — відкриваємо лише перший день.
+        return 1
+
+    # purchased_at може мати суфікс, напр. "2026-08-09 11:20 (Receipt Approved...)".
+    # Беремо перші 16 символів = "%Y-%m-%d %H:%M".
+    try:
+        purchased_dt = datetime.strptime(purchased_raw[:16], "%Y-%m-%d %H:%M")
+    except (ValueError, TypeError):
+        return 1
+
+    days_passed = (datetime.now() - purchased_dt).days
+    unlocked = 1 + max(days_passed, 0)
+    return min(unlocked, 7)
+
 def render_course_list(profile):
-    """Список днів персонального курсу з прогресом."""
+    """Список днів персонального курсу з прогресом та поступовим розблокуванням."""
     completed = profile.get("course_completed", [])
     count = len(completed)
     percent = int((count / 7) * 100)
     course = get_course_days(profile)
+    unlocked = get_unlocked_days(profile)
 
     text = (
         f"👑 **Ваш Персональний 7-Денний Курс Сну**\n\n"
-        f"📊 Ваш прогрес: **{count}/7 днів** ({percent}%)\n\n"
-        f"Оберіть день курсу для проходження практичного уроку:"
+        f"📊 Ваш прогрес: **{count}/7 днів** ({percent}%)\n"
+        f"🔓 Відкрито днів: **{unlocked}/7**\n\n"
+        f"Курс відкривається поступово — по одному дню щодоби. "
+        f"Оберіть доступний день, щоб пройти практичний урок:"
     )
     buttons = []
     for day in range(1, 8):
-        icon = "✅" if day in completed else "📘"
-        buttons.append([InlineKeyboardButton(text=f"{icon} {course[day]['title']}", callback_data=f"crs_day_{day}")])
+        if day > unlocked:
+            # Ще заблокований день — показуємо замок і скільки чекати.
+            wait = day - unlocked
+            lock_label = f"🔒 День {day} (через {wait} дн.)"
+            buttons.append([InlineKeyboardButton(text=lock_label, callback_data="crs_locked")])
+        else:
+            icon = "✅" if day in completed else "📘"
+            buttons.append([InlineKeyboardButton(text=f"{icon} {course[day]['title']}", callback_data=f"crs_day_{day}")])
 
     return text, InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -1626,11 +1571,30 @@ async def deny_if_not_premium(callback: CallbackQuery, profile):
         await callback.message.answer(text, reply_markup=kb, parse_mode="Markdown")
     return True
 
+@dp.callback_query(F.data == "crs_locked")
+async def process_course_locked(callback: CallbackQuery):
+    profile = get_user_profile(callback.from_user.id)
+    unlocked = get_unlocked_days(profile)
+    next_day = unlocked + 1
+    await callback.answer(
+        f"🔒 День {next_day} ще закритий. Курс відкривається по одному дню щодоби — "
+        f"повертайтеся завтра!",
+        show_alert=True,
+    )
+
 @dp.callback_query(F.data.startswith("crs_day_"))
 async def process_course_day_view(callback: CallbackQuery):
     day_num = int(callback.data.split("_")[2])
     profile = get_user_profile(callback.from_user.id)
     if await deny_if_not_premium(callback, profile):
+        return
+
+    # Захист від відкриття ще заблокованого дня (наприклад, через застарілу кнопку).
+    if day_num > get_unlocked_days(profile):
+        await callback.answer(
+            "🔒 Цей день ще не відкрито. Нові дні курсу з'являються по одному щодоби.",
+            show_alert=True,
+        )
         return
 
     completed = profile.get("course_completed", [])
@@ -1680,75 +1644,6 @@ async def process_course_back(callback: CallbackQuery):
     text, kb = render_course_list(profile)
     await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
     await callback.answer()
-
-# --- 📋 ВЕЧІРНІЙ ЧЕК-ЛИСТ ЗА СИНИТИСЯ ---
-@dp.message(F.text.in_([STRINGS["uk"]["btn_checklist"], STRINGS["en"]["btn_checklist"], STRINGS["ru"]["btn_checklist"]]))
-async def process_checklist_main(message: types.Message):
-    if not await require_premium(message):
-        return
-
-    profile = get_user_profile(message.from_user.id)
-    chk = profile.get("evening_checklist", {})
-
-    items = [
-        ("air", "💨 Провітрити спальню (18-20°C)"),
-        ("screens", "📱 Вимкнути екрани за 45 хв до сну"),
-        ("braindump", "📝 'Коробка тривог' (виписати думки)"),
-        ("caffeine", "☕ Без кави за 6 годин до сну"),
-        ("relax", "🧘 4-7-8 / US Navy релаксація")
-    ]
-
-    done_count = sum(1 for key, _ in items if chk.get(key, False))
-    text = (
-        f"📋 **Вечірній Чек-лист Засинання**\n\n"
-        f"Виконано: **{done_count}/5 відміток**\n\n"
-        f"Натискайте кнопки, щоб відмітити виконані кроки вечірнього ритуалу:"
-    )
-
-    buttons = []
-    for key, label in items:
-        status = "✅" if chk.get(key, False) else "⬜"
-        buttons.append([InlineKeyboardButton(text=f"{status} {label}", callback_data=f"chk_toggle_{key}")])
-
-    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await message.answer(text, reply_markup=kb, parse_mode="Markdown")
-
-@dp.callback_query(F.data.startswith("chk_toggle_"))
-async def process_checklist_toggle(callback: CallbackQuery):
-    key = callback.data.replace("chk_toggle_", "")
-    profile = get_user_profile(callback.from_user.id)
-    if "evening_checklist" not in profile:
-        profile["evening_checklist"] = {}
-
-    current_val = profile["evening_checklist"].get(key, False)
-    profile["evening_checklist"][key] = not current_val
-    save_user_profile(callback.from_user.id, profile)
-
-    items = [
-        ("air", "💨 Провітрити спальню (18-20°C)"),
-        ("screens", "📱 Вимкнути екрани за 45 хв до сну"),
-        ("braindump", "📝 'Коробка тривог' (виписати думки)"),
-        ("caffeine", "☕ Без кави за 6 годин до сну"),
-        ("relax", "🧘 4-7-8 / US Navy релаксація")
-    ]
-
-    chk = profile.get("evening_checklist", {})
-    done_count = sum(1 for k, _ in items if chk.get(k, False))
-
-    text = (
-        f"📋 **Вечірній Чек-лист Засинання**\n\n"
-        f"Виконано: **{done_count}/5 відміток**\n\n"
-        f"Натискайте кнопки, щоб відмітити виконані кроки вечірнього ритуалу:"
-    )
-
-    buttons = []
-    for k, label in items:
-        status = "✅" if chk.get(k, False) else "⬜"
-        buttons.append([InlineKeyboardButton(text=f"{status} {label}", callback_data=f"chk_toggle_{k}")])
-
-    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await callback.message.edit_text(text, reply_markup=kb, parse_mode="Markdown")
-    await callback.answer("Оновлено!")
 
 # --- 🤖 ЗАПИТАТИ ШІ-КОНСУЛЬТАНТА ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_ask_ai"], STRINGS["en"]["btn_ask_ai"], STRINGS["ru"]["btn_ask_ai"]]))

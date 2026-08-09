@@ -148,6 +148,172 @@
         <div class="journal-list" id="journalList">
           <!-- Rendered dynamically -->
         </div>
+      <!-- TAB: 7-DAY SLEEP COURSE & EVENING ROUTINE -->
+      <section id="tab-course" class="tab-page">
+        <div class="section-title-bar">
+          <div>
+            <h3>7-Денний Інтенсив 🎓</h3>
+            <p>Засинай за 5 хвилин & Медитації</p>
+          </div>
+          <div class="course-badge" id="courseOverallBadge">
+            <i class="fa-solid fa-crown"></i> <span id="courseProgressText">Преміум</span>
+          </div>
+        </div>
+
+        <!-- PAYWALL CONTAINER (Shown when subscription is NOT active) -->
+        <div id="coursePaywall" class="paywall-wrapper">
+          <div class="card paywall-card">
+            <div class="paywall-crown-glow">
+              <i class="fa-solid fa-crown"></i>
+            </div>
+            <h2>Відкрийте Преміум Доступ 👑</h2>
+            <p class="paywall-sub">Отримайте доступ до 7-денного інтенсиву засинання, аудіо-медитацій та персонального вечірнього чек-листа</p>
+
+            <div class="paywall-features">
+              <div class="feature-item">
+                <i class="fa-solid fa-check-double"></i>
+                <span><strong>7 Покрокових Уроків:</strong> Техніки US Navy, 4-7-8, мелатоніновий біохакінг</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-headphones"></i>
+                <span><strong>Аудіо-генератор сну:</strong> Гіпнотичний дощ, океанські хвилі, ліс</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-list-check"></i>
+                <span><strong>Вечірній Чек-лист:</strong> Формування щоденної рутини засинання</span>
+              </div>
+            </div>
+
+            <!-- Single Course Pricing Card -->
+            <div class="pricing-plans single-plan">
+              <div class="pricing-card active popular" style="width: 100%; text-align: center; padding: 16px;">
+                <div class="popular-tag">🔥 Повний доступ на завжди</div>
+                <span class="plan-name" style="font-size: 1.2rem; font-weight: 700; display: block; margin-top: 6px;">7-Денний Інтенсив Сну</span>
+                <span class="plan-price" style="font-size: 2.2rem; color: #6366f1; font-weight: 800; display: block; margin: 8px 0;">99 грн</span>
+                <span class="plan-sub" style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">Одноразова оплата • Доступ назавжди</span>
+              </div>
+            </div>
+
+            <!-- Payment Button -->
+            <button class="paywall-btn" onclick="initiateSubscriptionPayment()">
+              <i class="fa-solid fa-credit-card"></i> Придбати курс за 99 грн (Monobank / Card)
+            </button>
+
+            <!-- Promo Code Accordion -->
+            <div class="promo-box">
+              <div class="promo-input-row">
+                <input type="text" id="promoInput" placeholder="Введіть промокод (напр. SLEEP2026)">
+                <button onclick="applyPromoCode()">Застосувати</button>
+              </div>
+              <span id="promoFeedback" class="promo-feedback"></span>
+            </div>
+
+            <div class="demo-access-row">
+              <button class="text-link-btn" onclick="activateDemoPremium()">
+                ⚡ Увімкнути демо-доступ (для тестування)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN COURSE CONTENT (Shown when subscription IS active) -->
+        <div id="courseContent" class="course-content-wrapper" style="display: none;">
+          
+          <!-- Course Overall Progress Card -->
+          <div class="card course-progress-card">
+            <div class="course-progress-header">
+              <div>
+                <h4>Прогрес інтенсиву</h4>
+                <span class="sub-text" id="courseProgressSub">Пройдіть 7 днів для відновлення здорового сну</span>
+              </div>
+              <span class="progress-percent" id="courseProgressPercent">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="courseProgressBar" style="width: 0%"></div>
+            </div>
+          </div>
+
+        <!-- Audio Relaxation Player Card (Web Audio Ambient Sounds) -->
+        <div class="card relax-audio-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-headphones"></i> Звуки для засинання & Аудіо-релакс</h4>
+            <span class="live-tag" id="audioStatusTag">⏸️ Вимкнено</span>
+          </div>
+          <p class="card-sub">Фонові гіпнотичні звуки та розслаблення нервової системи</p>
+
+          <div class="sound-presets">
+            <button class="sound-chip active" onclick="selectSoundPreset('rain')" id="preset-rain">
+              <i class="fa-solid fa-cloud-rain"></i> Дощ
+            </button>
+            <button class="sound-chip" onclick="selectSoundPreset('ocean')" id="preset-ocean">
+              <i class="fa-solid fa-water"></i> Океан
+            </button>
+            <button class="sound-chip" onclick="selectSoundPreset('forest')" id="preset-forest">
+              <i class="fa-solid fa-tree"></i> Нічний ліс
+            </button>
+            <button class="sound-chip" onclick="selectSoundPreset('noise')" id="preset-noise">
+              <i class="fa-solid fa-wind"></i> Рожевий шум
+            </button>
+          </div>
+
+          <div class="audio-controls">
+            <button class="add-btn sound-play-btn" id="soundToggleBtn" onclick="toggleAudioPreset()">
+              <i class="fa-solid fa-play"></i> Увімкнути звук
+            </button>
+            <select id="audioTimerSelect" class="timer-select" onchange="setAudioTimer(this.value)">
+              <option value="0">Без таймера</option>
+              <option value="15">Таймер 15 хв</option>
+              <option value="30">Таймер 30 хв</option>
+              <option value="60">Таймер 60 хв</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Interactive Evening Checklist Card -->
+        <div class="card evening-checklist-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-list-check"></i> Вечірній Чек-лист Засинання</h4>
+            <span class="check-count" id="checklistCountTag">0/5 виконано</span>
+          </div>
+          <div class="checklist-items" id="eveningChecklist">
+            <label class="check-item">
+              <input type="checkbox" onchange="toggleChecklistItem(this, 'air')" id="chk-air">
+              <span class="custom-checkbox"></span>
+              <span class="check-text">💨 Провітрити спальню (температура 18-20°C)</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" onchange="toggleChecklistItem(this, 'screens')" id="chk-screens">
+              <span class="custom-checkbox"></span>
+              <span class="check-text">📱 Приглушити світло та вимкнути екрани за 45 хв</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" onchange="toggleChecklistItem(this, 'braindump')" id="chk-braindump">
+              <span class="custom-checkbox"></span>
+              <span class="check-text">📝 "Коробка тривог" — виписати думки та плани на завтра</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" onchange="toggleChecklistItem(this, 'caffeine')" id="chk-caffeine">
+              <span class="custom-checkbox"></span>
+              <span class="check-text">☕ Утриматися від кави та важкої їжі за 6 годин</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" onchange="toggleChecklistItem(this, 'relax')" id="chk-relax">
+              <span class="custom-checkbox"></span>
+              <span class="check-text">🧘 Виконати 4-7-8 дихання або 2-хвилинну релаксацію</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 7 Days Grid -->
+        <div class="section-title" style="margin-top: 20px;">
+          <h3>Програма 7-Денного Інтенсиву 📚</h3>
+        </div>
+        <div class="course-days-grid" id="courseDaysGrid">
+          <!-- Rendered dynamically via JS -->
+        </div>
+
+        </div> <!-- END #courseContent -->
+
       </section>
 
     </main>
@@ -157,6 +323,10 @@
       <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
         <i class="fa-solid fa-moon"></i>
         <span>Сон</span>
+      </button>
+      <button class="nav-item" data-tab="course" onclick="switchTab('course')">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>Курс</span>
       </button>
       <button class="nav-item" data-tab="relax" onclick="switchTab('relax')">
         <i class="fa-solid fa-spa"></i>
@@ -168,6 +338,25 @@
       </button>
     </nav>
 
+  </div>
+
+  <!-- MODAL: Course Lesson View -->
+  <div class="modal" id="courseLessonModal">
+    <div class="modal-backdrop" onclick="closeLessonModal()"></div>
+    <div class="modal-content lesson-modal-content">
+      <div class="modal-header">
+        <h3 id="lessonModalTitle">Урок 1</h3>
+        <button class="close-btn" onclick="closeLessonModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="lesson-modal-body" id="lessonModalBody">
+        <!-- Dynamic content -->
+      </div>
+      <div class="lesson-modal-footer">
+        <button class="submit-btn" id="completeLessonBtn" onclick="toggleCompleteCurrentLesson()">
+          <i class="fa-solid fa-check-circle"></i> Позначити урок пройденим
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: Manual Sleep Log -->
