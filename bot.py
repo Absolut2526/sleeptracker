@@ -1464,6 +1464,12 @@ def _call_llm(prompt: str):
             "Gemini", "https://generativelanguage.googleapis.com/v1beta/openai/",
             os.getenv("GEMINI_MODEL", "gemini-1.5-flash"), gemini_key,
         ))
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        providers.append((
+            "Groq", "https://api.groq.com/openai/v1",
+            os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"), groq_key,
+        ))
 
     for name, base_url, model, key in providers:
         try:
