@@ -3,3 +3,4 @@ aiohttp>=3.9.0
 certifi
 python-dotenv>=1.0.0
 g4f
+openai

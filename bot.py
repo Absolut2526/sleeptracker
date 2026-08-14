@@ -1443,7 +1443,35 @@ def get_text(profile, key, **kwargs):
     return template.format(**kwargs)
 
 # --- СПРАВЖНІЙ ШІ-ДВИГУН ГЕНЕРАЦІЇ АНАЛІЗУ СНУ (LIVE LLM) ---
-def generate_real_ai_analysis(profile, duration, quality, bedtime_str, waketime_str):
+def _call_llm(prompt: str):
+    """Виклик LLM: спершу офіційний OpenAI API (OPENAI_API_KEY), інакше g4f."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key)
+            response = client.chat.completions.create(
+                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                messages=[{"role": "user", "content": prompt}],
+            )
+            content = response.choices[0].message.content
+            if content and len(content.strip()) > 20:
+                return content.strip()
+        except Exception as e:
+            logging.error(f"OpenAI API Error: {e}")
+    try:
+        response = ai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        content = response.choices[0].message.content
+        if content and len(content.strip()) > 20:
+            return content.strip()
+    except Exception as e:
+        logging.error(f"g4f Live AI Error: {e}")
+    return None
+
+def generate_real_ai_analysis(profile, duration, quality, bedtime_str, waketime_str, wakeups=None, factors=None):
     lang = profile.get("lang", "uk")
     age_key = profile.get("age_group", "age_young")
     age_info = AGE_GROUPS.get(lang, AGE_GROUPS["uk"]).get(age_key, AGE_GROUPS["uk"]["age_young"])
@@ -1455,6 +1483,23 @@ def generate_real_ai_analysis(profile, duration, quality, bedtime_str, waketime_
     disruptor_title = DISRUPTORS.get(lang, DISRUPTORS["uk"]).get(profile.get("disruptor", "dis_phone"), "N/A")
     goal_title = GOALS.get(lang, GOALS["uk"]).get(profile.get("goal", "goal_quality"), "N/A")
 
+    extra_lines = []
+    if quality is not None:
+        extra_lines.append(f"- Суб'єктивна оцінка користувача: {quality}.")
+    if wakeups is not None:
+        extra_lines.append(f"- Пробуджень вночі: {wakeups}.")
+    if factors:
+        f_items = []
+        if factors.get("caffeine"):
+            f_items.append("кофеїн увечері")
+        if factors.get("screens"):
+            f_items.append("телефон перед сном")
+        if factors.get("nap"):
+            f_items.append("денний сон")
+        if f_items:
+            extra_lines.append(f"- Фактори перед сном: {', '.join(f_items)}.")
+    extra_str = "\n".join(extra_lines)
+
     lang_names = {"uk": "Ukrainian (українська)", "en": "English", "ru": "Russian (русский)"}
     selected_lang = lang_names.get(lang, "Ukrainian")
 
@@ -1463,24 +1508,18 @@ def generate_real_ai_analysis(profile, duration, quality, bedtime_str, waketime_
         f"Дані користувача:\n"
         f"- Сон: {duration} год (норма для його віку: {target} год, різниця: {diff_str} год, ~{cycles} фаз).\n"
         f"- Розклад: {bedtime_str} - {waketime_str}.\n"
-        f"- Перешкода: {disruptor_title}.\n\n"
-        f"Формат (до 40-50 слів!):\n"
+        f"- Перешкода: {disruptor_title}.\n"
+        + (extra_str + "\n" if extra_str else "")
+        + f"Формат (до 40-50 слів!):\n"
         f"📊 **Оцінка відновлення:** [наприклад: 85/100 🟢 Добре / 70/100 🟡 Посередньо]\n"
         f"🧠 **Висновок сну:** (2 короткі речення про пройдені фази, дефіцит/профіцит та біоритми)\n"
         f"⚡ **Стан ЦНС та Енергії:** (1 коротке речення про готовність нервової системи та рівень втоми)\n\n"
         f"Мова: {selected_lang}. Без порад, без привітань!"
     )
 
-    try:
-        response = ai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = response.choices[0].message.content
-        if content and len(content.strip()) > 20:
-            return content.strip()
-    except Exception as e:
-        logging.error(f"Live AI Error: {e}")
+    content = _call_llm(prompt)
+    if content:
+        return content
 
     return generate_ai_deep_analysis_fallback(profile, duration, quality, bedtime_str, waketime_str)
 
@@ -1633,18 +1672,11 @@ def generate_real_ai_answer(profile, question):
         f"6. Якщо «проаналізуй останні 7 днів» — використовуй саме останні записи з контексту.\n"
         f"7. Відповідь 60-150 слів, Markdown, конкретні поради, без води.\n"
     )
-    
-    try:
-        response = ai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = response.choices[0].message.content
-        if content and len(content.strip()) > 20:
-            return content.strip()
-    except Exception as e:
-        logging.error(f"Live AI Question Error: {e}")
-    
+
+    content = _call_llm(prompt)
+    if content:
+        return content
+
     fallback = {
         "uk": "🤖 **AI Sleep Coach:** Для покращення якості сну дотримуйтесь регулярного режиму, провітрюйте кімнату перед сном та вимикайте екрани за годину до відпочинку! Якщо бажаєте персональних порад — запишіть кілька ночей сну.",
         "en": "🤖 **AI Sleep Coach:** To improve sleep quality, keep a regular schedule, air out the room before bed, and turn off screens an hour before rest! For personalized advice, log a few nights of sleep.",
@@ -1702,27 +1734,24 @@ def generate_personal_course(profile):
         f"Мова всього тексту обов'язково: {selected_lang}. Не використовуй символ підкреслення."
     )
 
-    try:
-        response = ai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = (response.choices[0].message.content or "").strip()
-        start, end = content.find("["), content.rfind("]")
-        if start != -1 and end > start:
-            days = json.loads(content[start:end + 1])
-            if isinstance(days, list) and len(days) >= 7:
-                course = {}
-                for i, day in enumerate(days[:7], start=1):
-                    title = str(day.get("title", "")).strip()
-                    text = str(day.get("text", "")).strip()
-                    if len(title) < 5 or len(text) < 60:
-                        raise ValueError(f"День {i}: замало контенту від ШІ")
-                    course[i] = {"title": title[:90], "text": text}
-                logging.info(f"AI course generated for goal={goal_title}, disruptor={dis_title}")
-                return course
-    except Exception as e:
-        logging.error(f"AI Course Generation Error: {e}")
+    content = _call_llm(prompt)
+    if content:
+        try:
+            start, end = content.find("["), content.rfind("]")
+            if start != -1 and end > start:
+                days = json.loads(content[start:end + 1])
+                if isinstance(days, list) and len(days) >= 7:
+                    course = {}
+                    for i, day in enumerate(days[:7], start=1):
+                        title = str(day.get("title", "")).strip()
+                        text = str(day.get("text", "")).strip()
+                        if len(title) < 5 or len(text) < 60:
+                            raise ValueError(f"День {i}: замало контенту від ШІ")
+                        course[i] = {"title": title[:90], "text": text}
+                    logging.info(f"AI course generated for goal={goal_title}, disruptor={dis_title}")
+                    return course
+        except Exception as e:
+            logging.error(f"AI Course Generation Error: {e}")
 
     return build_personal_course_fallback(profile)
 
@@ -2253,6 +2282,16 @@ async def safe_edit_message(msg: types.Message, text: str, parse_mode: str = "Ma
             except Exception:
                 await msg.answer(text)
 
+async def _send_wake_ai_analysis(message: types.Message, profile: dict, duration, bedtime_str, waketime_str):
+    """ШІ-аналіз ночі одразу після натискання «Я прокинувся» (фоном, не блокує якість сну)."""
+    try:
+        status_msg = await message.answer(get_text(profile, "ai_thinking"))
+        ai_report = await asyncio.to_thread(
+            generate_real_ai_analysis, profile, duration, None, bedtime_str, waketime_str)
+        await safe_edit_message(status_msg, ai_report, parse_mode="Markdown")
+    except Exception as e:
+        logging.error(f"Wake AI analysis failed: {e}")
+
 # --- 🌙 ЛЯГАЮ СПАТИ / ☀️ Я ПРОКИНУВСЯ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_sleep"], STRINGS["en"]["btn_sleep"], STRINGS["ru"]["btn_sleep"]]))
 async def process_bedtime(message: types.Message):
@@ -2345,6 +2384,11 @@ async def process_waketime(message: types.Message, state: FSMContext):
         + get_text(profile, 'ask_quality'),
         reply_markup=kb,
         parse_mode="Markdown"
+    )
+
+    # Реальний ШІ-аналіз ночі стартує одразу після натискання «Я прокинувся» (фоном).
+    asyncio.create_task(
+        _send_wake_ai_analysis(message, profile, duration_rounded, bedtime_str, waketime_str)
     )
 
 @dp.callback_query(F.data == "sl_skip")
@@ -2568,7 +2612,7 @@ async def _finalize_sleep_log(message: types.Message, state: FSMContext, pending
     # ШІ-аналіз ночі (фоном, у фоновому потоці)
     ai_deep_report = await asyncio.to_thread(
         generate_real_ai_analysis, profile, pending["duration"], pending["quality"],
-        pending["bedtime"], pending["waketime"])
+        pending["bedtime"], pending["waketime"], pending.get("wakeups"), pending)
     final_content = "\n".join(lines) + f"\n\n{ai_deep_report}"
     await safe_edit_message(msg, final_content, parse_mode="Markdown")
 
