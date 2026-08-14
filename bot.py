@@ -41,6 +41,7 @@ import sleep_logic
 import timeutil
 from reminders import ReminderScheduler, get_reminders, DEFAULT_REMINDERS
 
+from g4f.client import Client
 ai_client = Client()
 
 from datetime import datetime, timedelta
@@ -60,6 +61,8 @@ from g4f.client import Client
 import sleep_logic
 import timeutil
 from reminders import ReminderScheduler, get_reminders, DEFAULT_REMINDERS
+
+from g4f.client import Client
 
 ai_client = Client()
 
