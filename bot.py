@@ -1444,21 +1444,40 @@ def get_text(profile, key, **kwargs):
 
 # --- СПРАВЖНІЙ ШІ-ДВИГУН ГЕНЕРАЦІЇ АНАЛІЗУ СНУ (LIVE LLM) ---
 def _call_llm(prompt: str):
-    """Виклик LLM: спершу офіційний OpenAI API (OPENAI_API_KEY), інакше g4f."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if api_key:
+    """Виклик LLM: OpenAI API → Gemini (безкоштовний ключ) → g4f."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logging.warning("openai package is not installed")
+        return None
+
+    providers = []
+    openai_key = os.getenv("OPENAI_API_KEY")
+    if openai_key:
+        providers.append((
+            "OpenAI", os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+            os.getenv("OPENAI_MODEL", "gpt-4o-mini"), openai_key,
+        ))
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        providers.append((
+            "Gemini", "https://generativelanguage.googleapis.com/v1beta/openai/",
+            os.getenv("GEMINI_MODEL", "gemini-1.5-flash"), gemini_key,
+        ))
+
+    for name, base_url, model, key in providers:
         try:
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
+            client = OpenAI(api_key=key, base_url=base_url)
             response = client.chat.completions.create(
-                model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                model=model,
                 messages=[{"role": "user", "content": prompt}],
             )
             content = response.choices[0].message.content
             if content and len(content.strip()) > 20:
                 return content.strip()
         except Exception as e:
-            logging.error(f"OpenAI API Error: {e}")
+            logging.error(f"{name} API Error: {e}")
+
     try:
         response = ai_client.chat.completions.create(
             model="gpt-4o-mini",
