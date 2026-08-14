@@ -21,6 +21,12 @@ import tempfile
 import secrets
 import hashlib
 import hmac
+
+# Ensure the project root is in sys.path so that submodules (sleep_logic, reminders) are findable
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from datetime import datetime, timedelta
 from aiohttp import web  # Додано для веб-сервера Render
 from aiogram import Bot, Dispatcher, types, F
