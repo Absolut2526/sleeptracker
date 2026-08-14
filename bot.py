@@ -19,6 +19,16 @@ import html
 import threading
 import tempfile
 import secrets
+import certifi
+import os
+import sys
+from pathlib import Path
+
+# Ensure the project root is in sys.path so that submodules (sleep_logic, reminders) are findable
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import hashlib
 import hmac
 
@@ -740,6 +750,7 @@ STRINGS = {
         "pay_rejected_user": "❌ **Ваша квитанция об оплате не подтверждена.**\n\nПожалуйста, проверьте реквизиты и сумму (99 грн) или обратитесь в поддержку.",
         "already_premium": "🎉 **У вас уже активирован доступ к курсу!**",
         "locked_menu_hint": "🔒 Меню ниже доступно до оплаты:",
+        "btn_support": "💬 Підтримка",
         "welcome_back": "👋 С возвращением! Ваш профиль уже настроен. Выберите действие:",
         "btn_stats": "📊 Статистика",
         "btn_goals": "🎯 Цели",
