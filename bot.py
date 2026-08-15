@@ -137,7 +137,7 @@ STRINGS = {
         "already_sleeping": "🌙 Ви вже спите! Коли прокинетеся, натисніть «☀️ Я прокинувся».",
         "not_sleeping": "☀️ Ви ще не вмикали таймер сну. Натисніть «🌙 Лягаю спати».",
         "woke_up_ask_quality": "☀️ Доброго дня / ранку!\n⏱️ Ви проспали **{h} год {m} хв** ({hrs} год).\n\nЯк ви почуваєтеся? Оцініть якість сну:",
-        "log_saved": "✅ **Запис сну збережено!**\n📅 Дата: {date}\n⏱️ Тривалість: **{duration} год** ({bedtime} - {waketime})\n✨ Оцінка: {quality}",
+        "log_saved": "✅ **Запис сну збережено!**\n📅 Дата: {date}\n⏱️ Тривалість: **{duration}** ({bedtime} - {waketime})\n✨ Оцінка: {quality}",
         "btn_buy": "💳 Придбати курс (99 грн)",
         "journal_empty": "📜 Журнал сну порожній.",
         "journal_title": "📜 Журнал сну:",
@@ -433,7 +433,7 @@ STRINGS = {
         "already_sleeping": "🌙 You are already sleeping! Press '☀️ I woke up' when you wake up.",
         "not_sleeping": "☀️ You haven't started the timer yet. Press '🌙 Going to sleep'.",
         "woke_up_ask_quality": "☀️ Good day / Morning!\n⏱️ You slept **{h} h {m} m** ({hrs} h).\n\nHow do you feel? Rate your sleep quality:",
-        "log_saved": "✅ **Sleep Log Saved!**\n📅 Date: {date}\n⏱️ Duration: **{duration} h** ({bedtime} - {waketime})\n✨ Rating: {quality}",
+        "log_saved": "✅ **Sleep Log Saved!**\n📅 Date: {date}\n⏱️ Duration: **{duration}** ({bedtime} - {waketime})\n✨ Rating: {quality}",
         "btn_buy": "💳 Buy course (99 UAH)",
         "journal_empty": "📜 Your sleep journal is empty.",
         "journal_title": "📜 Sleep Journal:",
@@ -729,7 +729,7 @@ STRINGS = {
         "already_sleeping": "🌙 Вы уже спите! Когда проснетесь, нажмите «☀️ Я проснулся».",
         "not_sleeping": "☀️ Вы еще не включали таймер сна. Нажмите «🌙 Ложусь спать».",
         "woke_up_ask_quality": "☀️ Доброго дня / утра!\n⏱️ Вы проспали **{h} ч {m} мин** ({hrs} ч).\n\nКак вы себя чувствуете? Оцените качество сна:",
-        "log_saved": "✅ **Запись сна сохранена!**\n📅 Дата: {date}\n⏱️ Длительность: **{duration} ч** ({bedtime} - {waketime})\n✨ Оценка: {quality}",
+        "log_saved": "✅ **Запись сна сохранена!**\n📅 Дата: {date}\n⏱️ Длительность: **{duration}** ({bedtime} - {waketime})\n✨ Оценка: {quality}",
         "btn_buy": "💳 Купить курс (99 грн)",
         "journal_empty": "📜 Журнал сна пуст.",
         "journal_title": "📜 Журнал сна:",
@@ -2294,18 +2294,16 @@ async def process_preview_unlock(callback: CallbackQuery):
     await callback.answer()
 
 async def safe_edit_message(msg: types.Message, text: str, parse_mode: str = "Markdown"):
+    """Редагує повідомлення. Ніколи не пересилає його заново (щоб не було дублікатів)."""
     try:
         await msg.edit_text(text, parse_mode=parse_mode)
+        return
     except Exception as e1:
         logging.warning(f"Edit with parse_mode {parse_mode} failed: {e1}")
-        try:
-            await msg.edit_text(text)
-        except Exception as e2:
-            logging.error(f"Edit plain text failed: {e2}")
-            try:
-                await msg.answer(text, parse_mode="Markdown")
-            except Exception:
-                await msg.answer(text)
+    try:
+        await msg.edit_text(text)
+    except Exception as e2:
+        logging.error(f"Edit plain text failed: {e2}")
 
 async def _send_wake_ai_analysis(message: types.Message, profile: dict, duration, bedtime_str, waketime_str):
     """ШІ-аналіз ночі одразу після натискання «Я прокинувся» (фоном, не блокує якість сну)."""
@@ -2628,18 +2626,22 @@ async def _finalize_sleep_log(message: types.Message, state: FSMContext, pending
         lines.append(f"\n{get_text(profile, 'level_up', level=new_level)}")
 
     status_str = get_text(profile, "ai_thinking")
-    msg = await message.answer(
-        "\n".join(lines) + f"\n\n{status_str}",
+    await message.answer(
+        "\n".join(lines),
         reply_markup=get_main_keyboard(profile, is_sleeping=False),
         parse_mode="Markdown"
     )
 
-    # ШІ-аналіз ночі (фоном, у фоновому потоці)
+    # ШІ-аналіз ночі (фоном, у фоновому потоці) — окремим повідомленням,
+    # щоб не дублювати запис журналу.
     ai_deep_report = await asyncio.to_thread(
         generate_real_ai_analysis, profile, pending["duration"], pending["quality"],
         pending["bedtime"], pending["waketime"], pending.get("wakeups"), pending)
-    final_content = "\n".join(lines) + f"\n\n{ai_deep_report}"
-    await safe_edit_message(msg, final_content, parse_mode="Markdown")
+    if ai_deep_report:
+        await message.answer(
+            f"{status_str}\n\n{ai_deep_report}",
+            parse_mode="Markdown"
+        )
 
 # --- 👤 ПРОФІЛЬ & НАЛАШТУВАННЯ ---
 @dp.message(F.text.in_([STRINGS["uk"]["btn_profile"], STRINGS["en"]["btn_profile"], STRINGS["ru"]["btn_profile"]]))
