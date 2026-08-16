@@ -94,17 +94,111 @@
       <section id="tab-journal" class="tab-page">
         <div class="section-title-bar">
           <div>
-            <h3>Журнал сну 📜</h3>
-            <p>Ваші останні записи та якість</p>
+            <h3 id="journalTitle">Журнал сну 📜</h3>
+            <p id="journalSub">Ваші останні записи та якість</p>
           </div>
           <button class="add-btn" onclick="openSleepModal()">
-            <i class="fa-solid fa-plus"></i> Запис
+            <i class="fa-solid fa-plus"></i> <span id="journalAddBtn">Запис</span>
           </button>
         </div>
 
         <div class="journal-list" id="journalList">
           <!-- Rendered dynamically -->
         </div>
+      </section>
+
+      <!-- TAB: STATISTICS -->
+      <section id="tab-stats" class="tab-page">
+        <div class="section-title-bar">
+          <div>
+            <h3 id="statsTitle">Статистика 📊</h3>
+            <p id="statsSub">Тенденції та закономірності сну</p>
+          </div>
+        </div>
+
+        <div class="stats-period-row" id="statsPeriodRow">
+          <button class="period-chip active" data-days="7" onclick="switchStatsPeriod(7)">7 днів</button>
+          <button class="period-chip" data-days="14" onclick="switchStatsPeriod(14)">14 днів</button>
+          <button class="period-chip" data-days="30" onclick="switchStatsPeriod(30)">30 днів</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-chart-line"></i> <span id="scoreChartTitle">Sleep Score</span></h4>
+          </div>
+          <div class="score-chart-container" id="scoreChartContainer"></div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-chart-simple"></i> <span id="durationChartTitle">Тривалість сну</span></h4>
+          </div>
+          <div class="bar-chart-container" id="durationChartContainer"></div>
+        </div>
+
+        <div class="card recs-card" id="recsCard">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-lightbulb"></i> <span id="recsTitle">Рекомендації</span></h4>
+          </div>
+          <div id="recsList"></div>
+        </div>
+      </section>
+
+      <!-- TAB: PROFILE & GOALS -->
+      <section id="tab-profile" class="tab-page">
+        <div class="section-title-bar">
+          <div>
+            <h3 id="profileTitle">Профіль 👤</h3>
+            <p id="profileSub">Цілі, досягнення та налаштування</p>
+          </div>
+        </div>
+
+        <div class="card profile-card">
+          <div class="profile-avatar-row">
+            <div class="avatar-container" id="profileAvatar">
+              <i class="fa-solid fa-moon"></i>
+            </div>
+            <div>
+              <h4 id="profileName">Користувач</h4>
+              <span class="profile-sub" id="profilePremiumTag">Free</span>
+            </div>
+          </div>
+          <div class="profile-stats-row">
+            <div class="profile-stat">
+              <span class="profile-stat-num" id="profileStreak">0</span>
+              <span class="profile-stat-lbl" id="profileStreakLbl">🔥 серія</span>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-num" id="profileLevel">1</span>
+              <span class="profile-stat-lbl" id="profileLevelLbl">⭐ рівень</span>
+            </div>
+            <div class="profile-stat">
+              <span class="profile-stat-num" id="profileXP">0</span>
+              <span class="profile-stat-lbl" id="profileXPLbl">💎 XP</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card goals-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-bullseye"></i> <span id="goalsTitle">Цілі</span></h4>
+            <button class="text-link-btn" id="editGoalsBtn" onclick="openGoalsModal()"><i class="fa-solid fa-pen"></i></button>
+          </div>
+          <div class="goals-list" id="goalsList"></div>
+        </div>
+
+        <div class="card achievements-card">
+          <div class="card-header">
+            <h4><i class="fa-solid fa-trophy"></i> <span id="achTitle">Досягнення</span></h4>
+          </div>
+          <div class="achievements-grid" id="achievementsGrid"></div>
+        </div>
+      </section>
+
       <!-- TAB: 7-DAY SLEEP COURSE & EVENING ROUTINE -->
       <section id="tab-course" class="tab-page">
         <div class="section-title-bar">
@@ -261,19 +355,40 @@
 
     </main>
 
+    <!-- Loading Overlay -->
+    <div class="app-loading" id="appLoading">
+      <div class="loading-spinner"></div>
+      <p id="loadingText">Завантаження...</p>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="errorBanner" style="display:none;">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span id="errorText">Не вдалося завантажити дані. Перевірте з'єднання.</span>
+      <button class="error-retry" onclick="initApp()">Повторити</button>
+    </div>
+
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
       <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
         <i class="fa-solid fa-moon"></i>
-        <span>Сон</span>
+        <span id="navSleep">Сон</span>
+      </button>
+      <button class="nav-item" data-tab="stats" onclick="switchTab('stats')">
+        <i class="fa-solid fa-chart-simple"></i>
+        <span id="navStats">Статистика</span>
       </button>
       <button class="nav-item" data-tab="course" onclick="switchTab('course')">
         <i class="fa-solid fa-graduation-cap"></i>
-        <span>Курс</span>
+        <span id="navCourse">Курс</span>
       </button>
       <button class="nav-item" data-tab="journal" onclick="switchTab('journal')">
         <i class="fa-solid fa-book-bookmark"></i>
-        <span>Журнал</span>
+        <span id="navJournal">Журнал</span>
+      </button>
+      <button class="nav-item" data-tab="profile" onclick="switchTab('profile')">
+        <i class="fa-solid fa-user"></i>
+        <span id="navProfile">Профіль</span>
       </button>
     </nav>
 
@@ -303,48 +418,96 @@
     <div class="modal-backdrop" onclick="closeSleepModal()"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Записати сон 🌙</h3>
+        <h3 id="sleepModalTitle">Записати сон 🌙</h3>
         <button class="close-btn" onclick="closeSleepModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form id="sleepForm" onsubmit="saveSleepLog(event)">
         <div class="form-row">
           <div class="form-group">
-            <label>Час засинання</label>
+            <label id="sleepBedtimeLbl">Час засинання</label>
             <input type="time" id="sleepBedtime" value="23:30" required>
           </div>
           <div class="form-group">
-            <label>Час пробудження</label>
+            <label id="sleepWaketimeLbl">Час пробудження</label>
             <input type="time" id="sleepWaketime" value="07:30" required>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Якість сну</label>
-          <select id="sleepQuality">
-            <option value="🚀 Відмінно">🚀 Відмінно (Легкий підйом, бадьорість)</option>
-            <option value="😊 Добре">😊 Добре (Гарний сон)</option>
-            <option value="😐 Нормально">😐 Нормально (Середньо)</option>
-            <option value="🥱 Погано">🥱 Погано (Важко прокидатися)</option>
+          <label id="sleepQualityLbl">Якість сну (1-10)</label>
+          <div class="quality-rating" id="sleepQualityRating">
+            <button type="button" class="rating-btn" data-q="1" onclick="setRating(this, 1)">1</button>
+            <button type="button" class="rating-btn" data-q="2" onclick="setRating(this, 2)">2</button>
+            <button type="button" class="rating-btn" data-q="3" onclick="setRating(this, 3)">3</button>
+            <button type="button" class="rating-btn" data-q="4" onclick="setRating(this, 4)">4</button>
+            <button type="button" class="rating-btn" data-q="5" onclick="setRating(this, 5)">5</button>
+            <button type="button" class="rating-btn" data-q="6" onclick="setRating(this, 6)">6</button>
+            <button type="button" class="rating-btn" data-q="7" onclick="setRating(this, 7)">7</button>
+            <button type="button" class="rating-btn" data-q="8" onclick="setRating(this, 8)">8</button>
+            <button type="button" class="rating-btn" data-q="9" onclick="setRating(this, 9)">9</button>
+            <button type="button" class="rating-btn" data-q="10" onclick="setRating(this, 10)">10</button>
+          </div>
+          <input type="hidden" id="sleepQuality" value="0">
+        </div>
+
+        <div class="form-group">
+          <label id="sleepWakeupsLbl">Пробудження вночі</label>
+          <select id="sleepWakeups">
+            <option value="0">0 разів</option>
+            <option value="1">1 раз</option>
+            <option value="2">2 рази</option>
+            <option value="3">3+ рази</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Фактори перед сном</label>
+          <label id="sleepFactorsLbl">Фактори</label>
           <div class="factors-chips" id="factorsChips">
-            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="☕ Кава пізно">☕ Кава пізно</span>
-            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="📱 Екран">📱 Екран</span>
-            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="🏃 Спорт">🏃 Спорт</span>
-            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="🧘 Медитація">🧘 Медитація</span>
-            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="📖 Читання">📖 Читання</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="caffeine">☕ Кофеїн</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="screens">📱 Телефон</span>
+            <span class="factor-chip" onclick="toggleFactor(this)" data-factor="nap">😴 Денний сон</span>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Замітка (самопочуття)</label>
-          <input type="text" id="sleepNote" placeholder="Наприклад: прокидався вночі один раз">
+          <label id="sleepNoteLbl">Замітка (самопочуття)</label>
+          <input type="text" id="sleepNote" placeholder="">
         </div>
 
-        <button type="submit" class="submit-btn">Зберегти запис</button>
+        <button type="submit" class="submit-btn" id="sleepSaveBtn">Зберегти запис</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Goals -->
+  <div class="modal" id="goalsModal">
+    <div class="modal-backdrop" onclick="closeGoalsModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="goalsModalTitle">Цілі сну 🎯</h3>
+        <button class="close-btn" onclick="closeGoalsModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="goalsForm" onsubmit="saveGoals(event)">
+        <div class="form-group">
+          <label id="goalBedtimeLbl">Цільовий час сну</label>
+          <input type="time" id="goalBedtime" value="23:30" required>
+        </div>
+        <div class="form-group">
+          <label id="goalWaketimeLbl">Цільовий час підйому</label>
+          <input type="time" id="goalWaketime" value="07:30" required>
+        </div>
+        <div class="form-group">
+          <label id="goalDurationLbl">Бажана тривалість (год)</label>
+          <select id="goalDuration">
+            <option value="6.5">6.5</option>
+            <option value="7">7</option>
+            <option value="7.5">7.5</option>
+            <option value="8" selected>8</option>
+            <option value="8.5">8.5</option>
+            <option value="9">9</option>
+          </select>
+        </div>
+        <button type="submit" class="submit-btn" id="goalsSaveBtn">Зберегти</button>
       </form>
     </div>
   </div>

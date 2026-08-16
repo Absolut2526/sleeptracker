@@ -3,32 +3,288 @@ const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
+  tg.setHeaderColor?.('#0f1420');
+  tg.setBackgroundColor?.('#0f1420');
 }
 
-// Dedicated Sleep Tracker State
-let state = {
-  targetGoal: 8.0, // Hours
-  isSleeping: false,
-  sleepStartTime: null, // ISO String
-  selectedFactors: [],
-  logs: [
-    { id: 1, date: 'Середа, 5 серп.', bedtime: '23:30', waketime: '07:30', duration: 8.0, quality: '🚀 Відмінно', factors: ['🧘 Медитація', '📖 Читання'], note: 'Легкий підйом' },
-    { id: 2, date: 'Вівторок, 4 серп.', bedtime: '00:15', waketime: '07:45', duration: 7.5, quality: '😊 Добре', factors: ['📱 Екран'], note: 'Пізно заснув' },
-    { id: 3, date: 'Понеділок, 3 серп.', bedtime: '23:00', waketime: '07:00', duration: 8.0, quality: '🚀 Відмінно', factors: ['🧘 Медитація'], note: 'Чудовий сон' },
-    { id: 4, date: 'Неділя, 2 серп.', bedtime: '01:00', waketime: '08:00', duration: 7.0, quality: '😐 Нормально', factors: ['☕ Кава пізно'], note: 'Довго засинав' },
-    { id: 5, date: 'Субота, 1 серп.', bedtime: '23:45', waketime: '08:15', duration: 8.5, quality: '🚀 Відмінно', factors: ['🏃 Спорт'], note: 'Виспався на славу' },
-    { id: 6, date: "П'ятниця, 31 лип.", bedtime: '00:30', waketime: '07:30', duration: 7.0, quality: '😊 Добре', factors: [], note: '' },
-    { id: 7, date: 'Четвер, 30 лип.', bedtime: '23:15', waketime: '07:15', duration: 8.0, quality: '🚀 Відмінно', factors: ['📖 Читання'], note: 'Гарне самопочуття' }
-  ],
-  courseProgress: {
-    completedDays: [1],
-    checklist: { air: false, screens: false, braindump: false, caffeine: false, relax: false }
+/* ===================================================
+   I18N (uk / en / ru)
+   =================================================== */
+const I18N = {
+  uk: {
+    loading: 'Завантаження...',
+    error: 'Не вдалося завантажити дані. Перевірте з\u0027єднання.',
+    retry: 'Повторити',
+    navSleep: 'Сон',
+    navStats: 'Статистика',
+    navCourse: 'Курс',
+    navJournal: 'Журнал',
+    navProfile: 'Профіль',
+    journalTitle: 'Журнал сну 📜',
+    journalSub: 'Ваші останні записи та якість',
+    journalAdd: 'Запис',
+    journalEmpty: 'Немає записів сну',
+    statsTitle: 'Статистика 📊',
+    statsSub: 'Тенденції та закономірності сну',
+    period7: '7 днів',
+    period14: '14 днів',
+    period30: '30 днів',
+    scoreChartTitle: 'Sleep Score',
+    durationChartTitle: 'Тривалість сну',
+    recsTitle: 'Рекомендації',
+    recsEmpty: 'Зробіть кілька записів, щоб отримати персональні рекомендації.',
+    avgDuration: 'Середня тривалість',
+    avgScore: 'Середній бал',
+    bestScore: 'Найкращий бал',
+    consistency: 'Стабільність режиму',
+    lastNight: 'Остання ніч',
+    targetHours: 'Ціль',
+    hoursShort: 'год',
+    qualityAuto: 'Автоматично',
+    sleeping: '🌙 Ви зараз спите',
+    sleepingSub: 'Таймер сну активний. Натисніть, коли прокинетеся.',
+    wakeUp: 'Прокинутися ☀️',
+    awake: '☀️ Ви прокинулися',
+    awakeSub: 'Натисніть кнопку, коли лягаєте спати',
+    goSleep: 'Лягати спати',
+    profileTitle: 'Профіль 👤',
+    profileSub: 'Цілі, досягнення та налаштування',
+    streak: '🔥 серія',
+    level: '⭐ рівень',
+    xp: '💎 XP',
+    goalsTitle: 'Цілі',
+    goalBedtimeLbl: 'Цільовий час сну',
+    goalWaketimeLbl: 'Цільовий час підйому',
+    goalDurationLbl: 'Бажана тривалість (год)',
+    goalsSave: 'Зберегти',
+    goalsSaved: '✅ Цілі збережено',
+    achTitle: 'Досягнення',
+    ach_first_log: 'Перший запис сну',
+    ach_streak_3: '3 ночі поспіль',
+    ach_streak_7: 'Тиждень без перерв',
+    ach_nights_8h_5: '5 ночей по 8+ годин',
+    ach_score_90: 'Score 90+',
+    ach_score_80_3: '3 рази Score 80+',
+    ach_early_5: '5 ранніх підйомів',
+    ach_no_phone_3: '3 ночі без телефону',
+    sleepModalTitle: 'Записати сон 🌙',
+    sleepBedtimeLbl: 'Час засинання',
+    sleepWaketimeLbl: 'Час пробудження',
+    sleepQualityLbl: 'Якість сну (1-10)',
+    sleepWakeupsLbl: 'Пробудження вночі',
+    sleepFactorsLbl: 'Фактори',
+    sleepNoteLbl: 'Замітка (самопочуття)',
+    sleepSave: 'Зберегти запис',
+    savedOk: '✅ Запис збережено',
+    saveFailed: '❌ Не вдалося зберегти. Спробуйте ще раз.',
+    premiumRequired: '🔒 Для курсу потрібен Premium. Оформіть у боті.',
+    day: 'День',
+    done: 'Урок пройдено',
+    markDone: 'Позначити урок пройденим',
+    openInBot: 'Налаштування виконуються в боті',
+  },
+  en: {
+    loading: 'Loading...',
+    error: 'Failed to load data. Check your connection.',
+    retry: 'Retry',
+    navSleep: 'Sleep',
+    navStats: 'Stats',
+    navCourse: 'Course',
+    navJournal: 'Journal',
+    navProfile: 'Profile',
+    journalTitle: 'Sleep Journal 📜',
+    journalSub: 'Your latest logs & quality',
+    journalAdd: 'Log',
+    journalEmpty: 'No sleep logs yet',
+    statsTitle: 'Statistics 📊',
+    statsSub: 'Sleep trends & patterns',
+    period7: '7 days',
+    period14: '14 days',
+    period30: '30 days',
+    scoreChartTitle: 'Sleep Score',
+    durationChartTitle: 'Sleep duration',
+    recsTitle: 'Recommendations',
+    recsEmpty: 'Log a few nights to get personalized recommendations.',
+    avgDuration: 'Average duration',
+    avgScore: 'Average score',
+    bestScore: 'Best score',
+    consistency: 'Schedule stability',
+    lastNight: 'Last night',
+    targetHours: 'Target',
+    hoursShort: 'h',
+    qualityAuto: 'Automatic',
+    sleeping: '🌙 You are sleeping now',
+    sleepingSub: 'Timer is active. Tap when you wake up.',
+    wakeUp: 'Wake up ☀️',
+    awake: '☀️ You are awake',
+    awakeSub: 'Tap the button when you go to sleep',
+    goSleep: 'Go to sleep',
+    profileTitle: 'Profile 👤',
+    profileSub: 'Goals, achievements & settings',
+    streak: '🔥 streak',
+    level: '⭐ level',
+    xp: '💎 XP',
+    goalsTitle: 'Goals',
+    goalBedtimeLbl: 'Target bedtime',
+    goalWaketimeLbl: 'Target wake time',
+    goalDurationLbl: 'Target duration (h)',
+    goalsSave: 'Save',
+    goalsSaved: '✅ Goals saved',
+    achTitle: 'Achievements',
+    ach_first_log: 'First sleep log',
+    ach_streak_3: '3 nights in a row',
+    ach_streak_7: 'A week without breaks',
+    ach_nights_8h_5: '5 nights of 8+ hours',
+    ach_score_90: 'Score 90+',
+    ach_score_80_3: '3 times Score 80+',
+    ach_early_5: '5 early wake-ups',
+    ach_no_phone_3: '3 nights without phone',
+    sleepModalTitle: 'Log sleep 🌙',
+    sleepBedtimeLbl: 'Bedtime',
+    sleepWaketimeLbl: 'Wake time',
+    sleepQualityLbl: 'Sleep quality (1-10)',
+    sleepWakeupsLbl: 'Night wake-ups',
+    sleepFactorsLbl: 'Factors',
+    sleepNoteLbl: 'Note (how you feel)',
+    sleepSave: 'Save log',
+    savedOk: '✅ Log saved',
+    saveFailed: '❌ Failed to save. Try again.',
+    premiumRequired: '🔒 Premium is required for the course. Get it in the bot.',
+    day: 'Day',
+    done: 'Lesson completed',
+    markDone: 'Mark lesson as completed',
+    openInBot: 'Settings are managed in the bot',
+  },
+  ru: {
+    loading: 'Загрузка...',
+    error: 'Не удалось загрузить данные. Проверьте соединение.',
+    retry: 'Повторить',
+    navSleep: 'Сон',
+    navStats: 'Статистика',
+    navCourse: 'Курс',
+    navJournal: 'Журнал',
+    navProfile: 'Профиль',
+    journalTitle: 'Журнал сна 📜',
+    journalSub: 'Ваши последние записи и качество',
+    journalAdd: 'Запись',
+    journalEmpty: 'Нет записей сна',
+    statsTitle: 'Статистика 📊',
+    statsSub: 'Тенденции и закономерности сна',
+    period7: '7 дней',
+    period14: '14 дней',
+    period30: '30 дней',
+    scoreChartTitle: 'Sleep Score',
+    durationChartTitle: 'Длительность сна',
+    recsTitle: 'Рекомендации',
+    recsEmpty: 'Сделайте несколько записей, чтобы получить рекомендации.',
+    avgDuration: 'Средняя длительность',
+    avgScore: 'Средний балл',
+    bestScore: 'Лучший балл',
+    consistency: 'Стабильность режима',
+    lastNight: 'Прошлая ночь',
+    targetHours: 'Цель',
+    hoursShort: 'ч',
+    qualityAuto: 'Автоматически',
+    sleeping: '🌙 Вы сейчас спите',
+    sleepingSub: 'Таймер активен. Нажмите, когда проснётесь.',
+    wakeUp: 'Проснуться ☀️',
+    awake: '☀️ Вы проснулись',
+    awakeSub: 'Нажмите кнопку, когда ложитесь спать',
+    goSleep: 'Ложиться спать',
+    profileTitle: 'Профиль 👤',
+    profileSub: 'Цели, достижения и настройки',
+    streak: '🔥 серия',
+    level: '⭐ уровень',
+    xp: '💎 XP',
+    goalsTitle: 'Цели',
+    goalBedtimeLbl: 'Целевое время сна',
+    goalWaketimeLbl: 'Целевое время подъёма',
+    goalDurationLbl: 'Желаемая длительность (ч)',
+    goalsSave: 'Сохранить',
+    goalsSaved: '✅ Цели сохранены',
+    achTitle: 'Достижения',
+    ach_first_log: 'Первая запись сна',
+    ach_streak_3: '3 ночи подряд',
+    ach_streak_7: 'Неделя без перерывов',
+    ach_nights_8h_5: '5 ночей по 8+ часов',
+    ach_score_90: 'Score 90+',
+    ach_score_80_3: '3 раза Score 80+',
+    ach_early_5: '5 ранних подъёмов',
+    ach_no_phone_3: '3 ночи без телефона',
+    sleepModalTitle: 'Записать сон 🌙',
+    sleepBedtimeLbl: 'Время засыпания',
+    sleepWaketimeLbl: 'Время пробуждения',
+    sleepQualityLbl: 'Качество сна (1-10)',
+    sleepWakeupsLbl: 'Пробуждения ночью',
+    sleepFactorsLbl: 'Факторы',
+    sleepNoteLbl: 'Заметка (самочувствие)',
+    sleepSave: 'Сохранить запись',
+    savedOk: '✅ Запись сохранена',
+    saveFailed: '❌ Не удалось сохранить. Попробуйте ещё раз.',
+    premiumRequired: '🔒 Для курса нужен Premium. Оформите в боте.',
+    day: 'День',
+    done: 'Урок пройден',
+    markDone: 'Отметить урок пройденным',
+    openInBot: 'Настройки выполняются в боте',
   }
+};
+
+const ACH_ORDER = ['first_log', 'streak_3', 'streak_7', 'nights_8h_5', 'score_90', 'score_80_3', 'early_5', 'no_phone_3'];
+const ACH_ICONS = {
+  first_log: '🏆', streak_3: '🔥', streak_7: '🔥', nights_8h_5: '🌙',
+  score_90: '⭐', score_80_3: '💎', early_5: '🌅', no_phone_3: '📵'
+};
+
+let lang = 'uk';
+function t(key) { return (I18N[lang] && I18N[lang][key]) || I18N.uk[key] || key; }
+function applyI18n() {
+  const map = {
+    loadingText: 'loading', errorText: 'error', errorRetry: 'retry',
+    navSleep: 'navSleep', navStats: 'navStats', navCourse: 'navCourse',
+    navJournal: 'navJournal', navProfile: 'navProfile',
+    journalTitle: 'journalTitle', journalSub: 'journalSub', journalAddBtn: 'journalAdd',
+    statsTitle: 'statsTitle', statsSub: 'statsSub',
+    scoreChartTitle: 'scoreChartTitle', durationChartTitle: 'durationChartTitle', recsTitle: 'recsTitle',
+    profileTitle: 'profileTitle', profileSub: 'profileSub',
+    profileStreakLbl: 'streak', profileLevelLbl: 'level', profileXPLbl: 'xp',
+    goalsTitle: 'goalsTitle', achTitle: 'achTitle',
+    sleepModalTitle: 'sleepModalTitle', sleepBedtimeLbl: 'sleepBedtimeLbl',
+    sleepWaketimeLbl: 'sleepWaketimeLbl', sleepQualityLbl: 'sleepQualityLbl',
+    sleepWakeupsLbl: 'sleepWakeupsLbl', sleepFactorsLbl: 'sleepFactorsLbl',
+    sleepNoteLbl: 'sleepNoteLbl', sleepSaveBtn: 'sleepSave',
+    goalsModalTitle: 'goalsTitle', goalBedtimeLbl: 'goalBedtimeLbl',
+    goalWaketimeLbl: 'goalWaketimeLbl', goalDurationLbl: 'goalDurationLbl', goalsSaveBtn: 'goalsSave'
+  };
+  Object.entries(map).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-days]').forEach(b => {
+    const days = b.getAttribute('data-days');
+    b.textContent = days === '7' ? t('period7') : days === '14' ? t('period14') : t('period30');
+  });
+}
+
+// Екранування тексту перед вставкою в HTML (захист від XSS)
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str == null ? '' : str);
+  return div.innerHTML;
+}
+
+// App State
+let state = {
+  profile: null,
+  isSleeping: false,
+  sleepStartTime: null,
+  selectedFactors: [],
+  courseProgress: { completedDays: [1], checklist: { air: false, screens: false, braindump: false, caffeine: false, relax: false } }
 };
 
 let liveTimerInterval = null;
 let breathingInterval = null;
 let isBreathingRunning = false;
+let statsPeriod = 7;
 
 // Audio Ambient Sound Generator (Web Audio API)
 let audioCtx = null;
@@ -37,23 +293,120 @@ let currentSoundPreset = 'rain';
 let activeNoiseNodes = [];
 let audioTimerTimeout = null;
 
-// DOM Loaded Initialization
-document.addEventListener('DOMContentLoaded', () => {
-  loadState();
-  initTelegramUser();
-  renderWeeklyChart();
-  renderJournal();
-  updateSleepTimerUI();
+function saveLocal() {
+  localStorage.setItem('dedicated_sleep_tracker_state', JSON.stringify({
+    isSleeping: state.isSleeping,
+    sleepStartTime: state.sleepStartTime,
+    courseProgress: state.courseProgress
+  }));
+}
 
-  // Render 7-Day Sleep Course & Checklist
-  renderCourseTab();
-
-  // Check if active sleep timer was running
-  if (state.isSleeping && state.sleepStartTime) {
-    startLiveTimer();
+function loadLocal() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('dedicated_sleep_tracker_state'));
+    if (saved) {
+      state.isSleeping = !!saved.isSleeping;
+      state.sleepStartTime = saved.sleepStartTime || null;
+      state.courseProgress = { ...state.courseProgress, ...(saved.courseProgress || {}) };
+    }
+  } catch (e) {
+    console.error("Error loading saved state", e);
   }
+}
 
-  // Theme Toggle listener
+/* ===================================================
+   TELEGRAM THEME
+   =================================================== */
+function applyTelegramTheme() {
+  if (!tg || !tg.themeParams) return;
+  const p = tg.themeParams;
+  const root = document.documentElement;
+  const css = {
+    '--bg': p.bg_color || '#0f1420',
+    '--card': p.secondary_bg_color || '#1a2130',
+    '--text': p.text_color || '#f4f4f5',
+    '--text-secondary': p.hint_color || '#8b93a7',
+    '--accent': p.button_color || '#8b5cf6',
+    '--accent-text': p.button_text_color || '#ffffff'
+  };
+  Object.entries(css).forEach(([k, v]) => root.style.setProperty(k, v));
+}
+
+/* ===================================================
+   API LAYER (vra datos z servera, ne fake)
+   =================================================== */
+function apiInitData() {
+  return (tg && tg.initData) ? encodeURIComponent(tg.initData) : '';
+}
+
+async function apiFetch(url, options) {
+  const sep = url.includes('?') ? '&' : '?';
+  const res = await fetch(`${url}${sep}initData=${apiInitData()}`, options);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function apiMe() {
+  return apiFetch('/api/me');
+}
+
+async function apiLog(payload) {
+  return apiFetch('/api/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+}
+
+async function apiGoals(payload) {
+  return apiFetch('/api/goals', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+}
+
+/* ===================================================
+   INIT
+   =================================================== */
+function showLoading(show) {
+  document.getElementById('appLoading').style.display = show ? 'flex' : 'none';
+}
+function showError(show, text) {
+  const banner = document.getElementById('errorBanner');
+  banner.style.display = show ? 'flex' : 'none';
+  if (text) document.getElementById('errorText').textContent = text;
+}
+
+async function initApp() {
+  showError(false);
+  showLoading(true);
+  try {
+    const data = await apiMe();
+    state.profile = data;
+    if (data.lang) lang = data.lang;
+    applyTelegramTheme();
+    applyI18n();
+    initTelegramUser();
+    renderCourseTab();
+    renderDashboard();
+    renderJournal();
+    renderStats();
+    renderProfile();
+    showLoading(false);
+    if (state.isSleeping && state.sleepStartTime) startLiveTimer();
+    updateSleepTimerUI();
+  } catch (e) {
+    console.error('API error', e);
+    showLoading(false);
+    showError(true);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadLocal();
+  applyTelegramTheme();
+  initApp();
   document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 });
 
@@ -61,99 +414,69 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTelegramUser() {
   const userNameElem = document.getElementById('userName');
   const userAvatarElem = document.getElementById('userAvatar');
+  const profileName = document.getElementById('profileName');
 
-  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const user = tg.initDataUnsafe.user;
-    userNameElem.textContent = user.first_name + (user.last_name ? ` ${user.last_name}` : '');
-    
-    if (user.photo_url) {
-      userAvatarElem.innerHTML = `<img src="${user.photo_url}" alt="Avatar">`;
-    }
+  const user = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
+  const name = user ? (user.first_name + (user.last_name ? ` ${user.last_name}` : '')) : 'User';
+  if (userNameElem) userNameElem.textContent = name;
+  if (profileName) profileName.textContent = name;
+
+  if (user && user.photo_url && userAvatarElem) {
+    const img = document.createElement('img');
+    img.src = user.photo_url;
+    img.alt = 'Avatar';
+    userAvatarElem.innerHTML = '';
+    userAvatarElem.appendChild(img);
+  }
+  if (state.profile && state.profile.is_premium) {
+    document.getElementById('profilePremiumTag').textContent = '⭐ Premium';
+    document.getElementById('profilePremiumTag').classList.add('premium');
   }
 }
 
-// LocalStorage Helper
-function saveState() {
-  localStorage.setItem('dedicated_sleep_tracker_state', JSON.stringify(state));
-}
-
-function loadState() {
-  const saved = localStorage.getItem('dedicated_sleep_tracker_state');
-  if (saved) {
-    try {
-      state = { ...state, ...JSON.parse(saved) };
-    } catch (e) {
-      console.error("Error loading saved state", e);
-    }
-  }
-}
-
-// Navigation & Tab Switching
+/* ===================================================
+   NAVIGATION
+   =================================================== */
 function switchTab(tabName) {
   triggerHaptic();
-
   document.querySelectorAll('.tab-page').forEach(page => page.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-
   const targetPage = document.getElementById(`tab-${tabName}`);
   if (targetPage) targetPage.classList.add('active');
-
   const targetBtn = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
   if (targetBtn) targetBtn.classList.add('active');
 }
 
-// Trigger Haptic Feedback
 function triggerHaptic() {
-  if (tg && tg.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred('light');
-  }
+  if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 }
 
-// SLEEP TIMER LOGIC
+/* ===================================================
+   DASHBOARD / SLEEP TIMER
+   =================================================== */
 function toggleSleepTimer() {
   triggerHaptic();
-
   if (!state.isSleeping) {
-    // Start Sleep Timer
     state.isSleeping = true;
     state.sleepStartTime = new Date().toISOString();
-    saveState();
+    saveLocal();
     startLiveTimer();
     updateSleepTimerUI();
   } else {
-    // Stop Sleep Timer & Save Log
+    // Wake up → open log modal prefilled with timer data
     stopLiveTimer();
-    const startTime = new Date(state.sleepStartTime);
-    const endTime = new Date();
-
-    const durationHours = Math.max(0.1, (endTime - startTime) / (1000 * 60 * 60));
-    const roundedDuration = Math.round(durationHours * 10) / 10;
-
-    const bedtimeStr = formatTime(startTime);
-    const waketimeStr = formatTime(endTime);
-
-    const nowStr = new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'short' });
-    const formattedDate = nowStr.charAt(0).toUpperCase() + nowStr.slice(1);
-
-    const newLog = {
-      id: Date.now(),
-      date: formattedDate,
-      bedtime: bedtimeStr,
-      waketime: waketimeStr,
-      duration: roundedDuration,
-      quality: roundedDuration >= 7 ? '🚀 Відмінно' : '😊 Добре',
-      factors: ['⏱️ Живий таймер'],
-      note: 'Автоматично зафіксовано'
-    };
-
-    state.logs.unshift(newLog);
+    const start = new Date(state.sleepStartTime);
+    const end = new Date();
+    const b = document.getElementById('sleepBedtime');
+    const w = document.getElementById('sleepWaketime');
+    b.value = formatTime(start);
+    w.value = formatTime(end);
     state.isSleeping = false;
     state.sleepStartTime = null;
-    saveState();
-
+    saveLocal();
     updateSleepTimerUI();
-    renderWeeklyChart();
-    renderJournal();
+    document.getElementById('sleepNote').placeholder = '';
+    openSleepModal();
   }
 }
 
@@ -165,23 +488,20 @@ function startLiveTimer() {
 
 function stopLiveTimer() {
   if (liveTimerInterval) clearInterval(liveTimerInterval);
+  liveTimerInterval = null;
 }
 
 function updateLiveTimerDisplay() {
+  const el = document.getElementById('sleepTimerDisplay');
   if (!state.isSleeping || !state.sleepStartTime) {
-    document.getElementById('sleepTimerDisplay').textContent = '00:00:00';
+    el.textContent = '00:00:00';
     return;
   }
-
-  const start = new Date(state.sleepStartTime);
-  const now = new Date();
-  const diffMs = Math.max(0, now - start);
-
-  const hours = Math.floor(diffMs / (1000 * 60 * 60)).toString().padStart(2, '0');
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-  const seconds = Math.floor((diffMs % (1000 * 60)) / 1000).toString().padStart(2, '0');
-
-  document.getElementById('sleepTimerDisplay').textContent = `${hours}:${minutes}:${seconds}`;
+  const diffMs = Math.max(0, Date.now() - new Date(state.sleepStartTime));
+  const h = Math.floor(diffMs / 3600000).toString().padStart(2, '0');
+  const m = Math.floor((diffMs % 3600000) / 60000).toString().padStart(2, '0');
+  const s = Math.floor((diffMs % 60000) / 1000).toString().padStart(2, '0');
+  el.textContent = `${h}:${m}:${s}`;
 }
 
 function updateSleepTimerUI() {
@@ -194,99 +514,272 @@ function updateSleepTimerUI() {
 
   if (state.isSleeping) {
     card.classList.add('sleeping');
-    tag.textContent = '🌙 Ви зараз спите';
+    tag.textContent = t('sleeping');
     tag.style.color = '#34d399';
-    sub.textContent = 'Таймер сну активний. Натисніть, коли прокинетеся.';
-    btnText.textContent = 'Прокинутися ☀️';
+    sub.textContent = t('sleepingSub');
+    btnText.textContent = t('wakeUp');
     btn.querySelector('i').className = 'fa-solid fa-sun';
     moonIcon.className = 'fa-solid fa-bed';
   } else {
     card.classList.remove('sleeping');
-    tag.textContent = '☀️ Ви прокинулися';
+    tag.textContent = t('awake');
     tag.style.color = '#c7d2fe';
-    sub.textContent = 'Натисніть кнопку, коли лягаєте спати';
-    btnText.textContent = 'Лягати спати';
+    sub.textContent = t('awakeSub');
+    btnText.textContent = t('goSleep');
     btn.querySelector('i').className = 'fa-solid fa-bed';
     moonIcon.className = 'fa-solid fa-moon';
     document.getElementById('sleepTimerDisplay').textContent = '00:00:00';
   }
 
-  // Update last sleep and average stats
-  if (state.logs.length > 0) {
-    const last = state.logs[0];
-    document.getElementById('lastSleepHours').innerHTML = `${last.duration.toFixed(1)} <small>год</small>`;
-    document.getElementById('lastSleepQuality').textContent = last.quality;
-
-    const sum = state.logs.slice(0, 7).reduce((acc, curr) => acc + curr.duration, 0);
-    const avg = sum / Math.min(7, state.logs.length);
-    document.getElementById('avgSleepHours').innerHTML = `${avg.toFixed(1)} <small>год</small>`;
-    document.getElementById('chartAvgTag').textContent = `${avg.toFixed(1)} год / ніч`;
+  const logs = (state.profile && state.profile.logs) || [];
+  if (logs.length > 0) {
+    const last = logs[0];
+    document.getElementById('lastSleepHours').innerHTML = `${Number(last.duration).toFixed(1)} <small>${t('hoursShort')}</small>`;
+    document.getElementById('lastSleepQuality').textContent = last.quality || t('qualityAuto');
+    const sum = logs.slice(0, 7).reduce((acc, cur) => acc + Number(cur.duration || 0), 0);
+    const avg = sum / Math.min(7, logs.length);
+    document.getElementById('avgSleepHours').innerHTML = `${avg.toFixed(1)} <small>${t('hoursShort')}</small>`;
+    document.getElementById('chartAvgTag').textContent = `${avg.toFixed(1)} ${t('hoursShort')} / ${t('lastNight').toLowerCase()}`;
+  } else {
+    document.getElementById('lastSleepHours').innerHTML = `--`;
+    document.getElementById('lastSleepQuality').textContent = '--';
+    document.getElementById('avgSleepHours').innerHTML = `--`;
   }
 }
 
-// WEEKLY BAR CHART GENERATOR
+/* ===================================================
+   WEEKLY BAR CHART (dashboard)
+   =================================================== */
 function renderWeeklyChart() {
   const container = document.getElementById('barChartContainer');
+  if (!container) return;
   container.innerHTML = '';
-
-  const recentLogs = state.logs.slice(0, 7).reverse();
+  const logs = ((state.profile && state.profile.logs) || []).slice(0, 7).reverse();
+  if (logs.length === 0) {
+    container.innerHTML = `<p style="color:var(--text-secondary); text-align:center; padding:20px;">${t('journalEmpty')}</p>`;
+    return;
+  }
   const maxGoal = 10.0;
-
-  recentLogs.forEach(log => {
+  const target = state.profile ? Number(state.profile.goal_duration || 8) : 8;
+  logs.forEach(log => {
+    const heightPercent = Math.min(100, (Number(log.duration) / maxGoal) * 100);
+    const isTarget = Number(log.duration) >= target;
+    const dayName = String(log.date || '').split(',')[0].slice(0, 2) || '--';
     const col = document.createElement('div');
     col.className = 'bar-col';
-
-    const heightPercent = Math.min(100, (log.duration / maxGoal) * 100);
-    const isTarget = log.duration >= state.targetGoal;
-
-    const dayName = log.date.split(',')[0].slice(0, 2);
-
     col.innerHTML = `
-      <span class="bar-val">${log.duration}г</span>
+      <span class="bar-val">${Number(log.duration).toFixed(1)}${t('hoursShort')}</span>
       <div class="bar-fill-wrap">
         <div class="bar-fill ${isTarget ? 'target-reached' : ''}" style="height: ${heightPercent}%"></div>
       </div>
-      <span class="bar-label">${dayName}</span>
+      <span class="bar-label">${escapeHTML(dayName)}</span>
     `;
-
     container.appendChild(col);
   });
 }
 
-// JOURNAL & HISTORY
+function renderDashboard() {
+  updateSleepTimerUI();
+  renderWeeklyChart();
+}
+
+/* ===================================================
+   JOURNAL
+   =================================================== */
 function renderJournal() {
   const container = document.getElementById('journalList');
+  if (!container) return;
   container.innerHTML = '';
-
-  if (state.logs.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:20px;">Немає записів сну</p>';
+  const logs = (state.profile && state.profile.logs) || [];
+  if (logs.length === 0) {
+    container.innerHTML = `<p style="color:var(--text-secondary); text-align:center; padding:20px;">${t('journalEmpty')}</p>`;
     return;
   }
-
-  state.logs.forEach(log => {
+  logs.forEach(log => {
     const card = document.createElement('div');
     card.className = 'journal-card';
-
-    const factorsHTML = (log.factors || []).map(f => `<span class="factor-badge">${f}</span>`).join('');
-
+    const score = log.score != null
+      ? `<span class="journal-score ${Number(log.score) >= 80 ? 'good' : Number(log.score) >= 60 ? 'mid' : ''}">${Number(log.score)}</span>`
+      : '';
+    const factors = ['caffeine', 'screens', 'nap']
+      .filter(k => log[k])
+      .map(k => `<span class="factor-badge">${k === 'caffeine' ? '☕' : k === 'screens' ? '📱' : '😴'}</span>`)
+      .join('');
     card.innerHTML = `
       <div class="journal-top">
-        <span class="journal-date">${log.date}</span>
-        <span class="journal-duration">${log.duration.toFixed(1)} год</span>
+        <span class="journal-date">${escapeHTML(log.date)}</span>
+        ${score}
+        <span class="journal-duration">${Number(log.duration).toFixed(1)} ${t('hoursShort')}</span>
       </div>
       <div class="journal-times">
-        <i class="fa-solid fa-moon"></i> ${log.bedtime} — <i class="fa-solid fa-sun"></i> ${log.waketime} (${log.quality})
+        <i class="fa-solid fa-moon"></i> ${escapeHTML(log.bedtime)} — <i class="fa-solid fa-sun"></i> ${escapeHTML(log.waketime)} (${escapeHTML(log.quality || t('qualityAuto'))})
       </div>
-      ${log.note ? `<p style="font-size:0.8rem; color:var(--text-secondary);">${log.note}</p>` : ''}
-      ${factorsHTML ? `<div class="journal-factors">${factorsHTML}</div>` : ''}
+      ${log.note ? `<p style="font-size:0.8rem; color:var(--text-secondary);">${escapeHTML(log.note)}</p>` : ''}
+      ${factors ? `<div class="journal-factors">${factors}</div>` : ''}
     `;
-
     container.appendChild(card);
   });
 }
 
-// MODAL CONTROLS & FACTORS
+/* ===================================================
+   STATISTICS TAB
+   =================================================== */
+function switchStatsPeriod(days) {
+  statsPeriod = days;
+  document.querySelectorAll('.period-chip').forEach(ch => ch.classList.toggle('active', Number(ch.getAttribute('data-days')) === days));
+  renderStats();
+}
+
+function renderStats() {
+  const logs = ((state.profile && state.profile.logs) || []).slice(0, statsPeriod);
+  const grid = document.getElementById('statsGrid');
+  const scoreChart = document.getElementById('scoreChartContainer');
+  const durChart = document.getElementById('durationChartContainer');
+  const recsList = document.getElementById('recsList');
+  if (!grid) return;
+
+  if (logs.length === 0) {
+    grid.innerHTML = `<div class="card" style="grid-column:1/-1; text-align:center; color:var(--text-secondary);">${t('journalEmpty')}</div>`;
+    scoreChart.innerHTML = '';
+    durChart.innerHTML = '';
+    recsList.innerHTML = `<p style="color:var(--text-secondary);">${t('recsEmpty')}</p>`;
+    return;
+  }
+
+  const durations = logs.map(l => Number(l.duration || 0));
+  const scores = logs.map(l => Number(l.score || 0)).filter(s => s > 0);
+  const avgDur = durations.reduce((a, b) => a + b, 0) / durations.length;
+  const avgScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  const bestScore = scores.length ? Math.max(...scores) : 0;
+  const stdDev = Math.sqrt(durations.reduce((acc, d) => acc + Math.pow(d - avgDur, 2), 0) / durations.length);
+  const consistency = stdDev <= 0.8 ? 90 : stdDev <= 1.5 ? 70 : stdDev <= 2.5 ? 45 : 25;
+
+  const card = (icon, label, value, extra) => `
+    <div class="stat-card card">
+      <div class="stat-icon">${icon}</div>
+      <div class="stat-body">
+        <span class="stat-label">${label}</span>
+        <span class="stat-value">${value}</span>
+        ${extra ? `<span class="stat-extra">${extra}</span>` : ''}
+      </div>
+    </div>`;
+
+  grid.innerHTML =
+    card('⏱️', t('avgDuration'), `${avgDur.toFixed(1)} ${t('hoursShort')}`, t('targetHours') + ': ' + (state.profile ? Number(state.profile.goal_duration).toFixed(1) : '8.0')) +
+    card('🎯', t('avgScore'), `${avgScore}/100`, '') +
+    card('🏆', t('bestScore'), `${bestScore}/100`, '') +
+    card('📐', t('consistency'), `${consistency}%`, '');
+
+  // Sleep Score line chart (SVG)
+  renderScoreChart(scoreChart, logs);
+  // Duration bar chart
+  renderDurationChart(durChart, logs);
+
+  // Recommendations
+  const target = state.profile ? Number(state.profile.goal_duration) : 8;
+  const recs = [];
+  if (avgDur < target - 0.5) recs.push(`⏱️ ${t('navSleep')}: ${t('avgDuration')} ${avgDur.toFixed(1)} ${t('hoursShort')} < ${target.toFixed(1)} ${t('hoursShort')}`);
+  if (scores.length && avgScore < 70) recs.push(`💡 Sleep Score нижчий за 70 — спробуйте лягати раніше та прибрати телефон за годину до сну`);
+  const late = logs.filter(l => String(l.bedtime || '23:59').localeCompare('23:30') > 0).length;
+  if (late > logs.length / 2) recs.push(`🌙 Ви лягаєте пізніше 23:30 частіше, ніж половина ночей — зруште час сну на 15 хв раніше`);
+  const caff = logs.filter(l => l.caffeine).length;
+  if (caff > 0) recs.push(`☕ Кофеїн зафіксовано у ${caff} ночей — остання кава має бути за 8 год до сну`);
+  recsList.innerHTML = recs.length
+    ? recs.map(r => `<div class="rec-item"><i class="fa-solid fa-circle-check"></i><span>${r}</span></div>`).join('')
+    : `<p style="color:var(--text-secondary);">${t('recsEmpty')}</p>`;
+}
+
+function renderScoreChart(container, logs) {
+  container.innerHTML = '';
+  const scores = logs.slice(0, 14).reverse().map(l => Number(l.score || 0));
+  const maxScore = 100;
+  const w = 320, h = 90, pad = 6;
+  if (scores.length < 2) {
+    container.innerHTML = `<p style="color:var(--text-secondary); text-align:center; padding:10px;">${t('journalEmpty')}</p>`;
+    return;
+  }
+  const stepX = (w - pad * 2) / (scores.length - 1);
+  const points = scores.map((s, i) => {
+    const x = pad + i * stepX;
+    const y = h - pad - (Math.min(s, maxScore) / maxScore) * (h - pad * 2);
+    return { x, y };
+  });
+  const line = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const area = `M${points[0].x.toFixed(1)},${h - pad} L${line.replace(/ /g, ' L')} L${points[points.length - 1].x.toFixed(1)},${h - pad} Z`;
+  const svg = `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%; height:100%;">
+      <defs>
+        <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="var(--text-secondary)" stroke-opacity="0.2" stroke-width="1"/>
+      <path d="${area}" fill="url(#scoreGrad)"/>
+      <polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="2.5" fill="var(--accent)"/>`).join('')}
+    </svg>`;
+  container.innerHTML = svg;
+  const lastScore = scores[scores.length - 1];
+  container.insertAdjacentHTML('beforeend',
+    `<div class="score-summary">${t('avgScore')}: <b>${Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)}</b> · ${t('lastNight')}: <b>${lastScore}</b></div>`);
+}
+
+function renderDurationChart(container, logs) {
+  container.innerHTML = '';
+  const recent = logs.slice(0, 7).reverse();
+  const target = state.profile ? Number(state.profile.goal_duration) : 8;
+  const maxH = Math.max(10, ...recent.map(l => Number(l.duration || 0)));
+  recent.forEach(log => {
+    const h = Math.min(100, (Number(log.duration) / maxH) * 100);
+    const ok = Number(log.duration) >= target;
+    const col = document.createElement('div');
+    col.className = 'dbar-col';
+    col.innerHTML = `
+      <div class="dbar-wrap">
+        <div class="dbar-fill ${ok ? 'target-reached' : ''}" style="height:${h}%"></div>
+      </div>
+      <span class="dbar-label">${escapeHTML(String(log.date || '--').split(',')[0].slice(0, 2))}</span>`;
+    container.appendChild(col);
+  });
+}
+
+/* ===================================================
+   PROFILE TAB
+   =================================================== */
+function renderProfile() {
+  const p = state.profile;
+  if (!p) return;
+  document.getElementById('profileStreak').textContent = p.streak || 0;
+  document.getElementById('profileLevel').textContent = p.level || 1;
+  document.getElementById('profileXP').textContent = p.xp || 0;
+
+  const goalsList = document.getElementById('goalsList');
+  goalsList.innerHTML = `
+    <div class="goal-row"><span>🌅 ${t('goalBedtimeLbl')}</span><b>${escapeHTML(p.goal_bedtime || '23:30')}</b></div>
+    <div class="goal-row"><span>☀️ ${t('goalWaketimeLbl')}</span><b>${escapeHTML(p.goal_waketime || '07:30')}</b></div>
+    <div class="goal-row"><span>⏱ ${t('goalDurationLbl')}</span><b>${Number(p.goal_duration || 8).toFixed(1)} ${t('hoursShort')}</b></div>
+  `;
+
+  const grid = document.getElementById('achievementsGrid');
+  const owned = new Set(p.achievements || []);
+  grid.innerHTML = ACH_ORDER.map(id => {
+    const done = owned.has(id);
+    return `
+      <div class="ach-item ${done ? 'owned' : 'locked'}" title="${escapeHTML(t('ach_' + id))}">
+        <span class="ach-icon">${ACH_ICONS[id] || '🎖️'}</span>
+        <span class="ach-name">${escapeHTML(t('ach_' + id))}</span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('editGoalsBtn').onclick = openGoalsModal;
+}
+
+/* ===================================================
+   MODALS: Sleep Log & Goals
+   =================================================== */
 function openSleepModal() {
+  triggerHaptic();
   document.getElementById('sleepModal').classList.add('active');
 }
 
@@ -294,60 +787,98 @@ function closeSleepModal() {
   document.getElementById('sleepModal').classList.remove('active');
 }
 
+function setRating(btn, val) {
+  document.getElementById('sleepQuality').value = val;
+  document.querySelectorAll('.rating-btn').forEach(b => b.classList.toggle('selected', Number(b.getAttribute('data-q')) <= val));
+}
+
 function toggleFactor(chip) {
   chip.classList.toggle('selected');
 }
 
-function saveSleepLog(e) {
+async function saveSleepLog(e) {
   e.preventDefault();
   const bedtime = document.getElementById('sleepBedtime').value;
   const waketime = document.getElementById('sleepWaketime').value;
-  const quality = document.getElementById('sleepQuality').value;
-  const note = document.getElementById('sleepNote').value;
-
-  // Selected factors
-  const selectedChips = document.querySelectorAll('.factor-chip.selected');
-  const factors = Array.from(selectedChips).map(c => c.getAttribute('data-factor'));
+  const quality = Number(document.getElementById('sleepQuality').value) || 0;
+  const wakeups = Number(document.getElementById('sleepWakeups').value) || 0;
+  const note = document.getElementById('sleepNote').value.trim();
+  const factors = Array.from(document.querySelectorAll('.factor-chip.selected')).map(c => c.getAttribute('data-factor'));
 
   if (!bedtime || !waketime) return;
 
-  const [bH, bM] = bedtime.split(':').map(Number);
-  const [wH, wM] = waketime.split(':').map(Number);
-
-  let bedMin = bH * 60 + bM;
-  let wakeMin = wH * 60 + wM;
-  if (wakeMin < bedMin) wakeMin += 24 * 60;
-
-  const durationHours = Math.round(((wakeMin - bedMin) / 60) * 10) / 10;
-
-  const nowStr = new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'short' });
-  const formattedDate = nowStr.charAt(0).toUpperCase() + nowStr.slice(1);
-
-  const newLog = {
-    id: Date.now(),
-    date: formattedDate,
-    bedtime: bedtime,
-    waketime: waketime,
-    duration: durationHours,
-    quality: quality,
-    factors: factors,
-    note: note ? note.trim() : ''
+  const payload = {
+    bedtime, waketime,
+    quality, wakeups, note,
+    caffeine: factors.includes('caffeine'),
+    screens: factors.includes('screens'),
+    nap: factors.includes('nap')
   };
 
-  state.logs.unshift(newLog);
-  saveState();
-
-  renderWeeklyChart();
-  renderJournal();
-  updateSleepTimerUI();
-  closeSleepModal();
-
-  // Reset factors
-  selectedChips.forEach(c => c.classList.remove('selected'));
-  document.getElementById('sleepForm').reset();
+  const btn = document.getElementById('sleepSaveBtn');
+  btn.disabled = true;
+  try {
+    await apiLog(payload);
+    closeSleepModal();
+    document.getElementById('sleepForm').reset();
+    setRating(null, 0);
+    document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.factor-chip').forEach(c => c.classList.remove('selected'));
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    const data = await apiMe();
+    state.profile = data;
+    renderDashboard();
+    renderJournal();
+    renderStats();
+    renderProfile();
+  } catch (err) {
+    if (tg && tg.showAlert) {
+      tg.showAlert(t('saveFailed'));
+    } else {
+      alert(t('saveFailed'));
+    }
+  } finally {
+    btn.disabled = false;
+  }
 }
 
-// UTILS
+function openGoalsModal() {
+  const p = state.profile;
+  if (!p) return;
+  document.getElementById('goalBedtime').value = p.goal_bedtime || '23:30';
+  document.getElementById('goalWaketime').value = p.goal_waketime || '07:30';
+  document.getElementById('goalDuration').value = String(Number(p.goal_duration || 8).toFixed(1));
+  document.getElementById('goalsModal').classList.add('active');
+}
+
+function closeGoalsModal() {
+  document.getElementById('goalsModal').classList.remove('active');
+}
+
+async function saveGoals(e) {
+  e.preventDefault();
+  const payload = {
+    goal_bedtime: document.getElementById('goalBedtime').value,
+    goal_waketime: document.getElementById('goalWaketime').value,
+    goal_duration: Number(document.getElementById('goalDuration').value)
+  };
+  try {
+    await apiGoals(payload);
+    const data = await apiMe();
+    state.profile = data;
+    closeGoalsModal();
+    renderProfile();
+    renderDashboard();
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+  } catch (err) {
+    if (tg && tg.showAlert) tg.showAlert(t('saveFailed'));
+    else alert(t('saveFailed'));
+  }
+}
+
+/* ===================================================
+   UTILS
+   =================================================== */
 function formatTime(dateObj) {
   const h = dateObj.getHours().toString().padStart(2, '0');
   const m = dateObj.getMinutes().toString().padStart(2, '0');
@@ -366,6 +897,7 @@ function toggleTheme() {
 
 /* ===================================================
    7-DAY SLEEP COURSE & AUDIO RELAX GENERATOR LOGIC
+   (контент курсу — локально, доступ — з сервера)
    =================================================== */
 
 const COURSE_DAYS = [
@@ -377,7 +909,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Чому ви важко засинаєте?</h4>
       <p>Наш мозок виділяє <strong>мелатонін</strong> (гормон сну) тільки тоді, коли сітківка ока перестає отримувати синє спектральне світло (екрани смартфонів, телевізори, яскраве ЛЕД-освітлення).</p>
-      
+
       <div class="highlight-box">
         <strong>⚡ Практичне завдання на сьогодні:</strong>
         <ul>
@@ -398,7 +930,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Техніка засинання льотчиків ВМС США</h4>
       <p>Ця методика дозволяє заснути за 2 хвилини після 6 тижнів практики, навіть за наявності шуму чи стресу.</p>
-      
+
       <div class="highlight-box">
         <strong>🧘 Покрокова інструкція:</strong>
         <ol style="padding-left: 20px; margin-top: 8px;">
@@ -418,7 +950,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Активація вагусного нерва (Парасимпатика)</h4>
       <p>Коли ви подовжуєте видих, ваш серцевий ритм сповільнюється, а рівень кортизолу (гормону стресу) стрімко падає.</p>
-      
+
       <div class="highlight-box">
         <strong>🌬️ Дихальна формула 4-7-8:</strong>
         <ul>
@@ -440,7 +972,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Період напіввиведення кофеїну</h4>
       <p>Кофеїн блокує рецептори аденозину (речовини, яка накопичує втому). Період напіввиведення кофеїну становить <strong>6 годин</strong>, а повне виведення — до 12 годин!</p>
-      
+
       <div class="highlight-box">
         <strong>🥗 Правила харчування для засинання:</strong>
         <ul>
@@ -459,7 +991,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Чому не можна лежати без сну понад 20 хвилин?</h4>
       <p>Якщо ви довго лежите в ліжку й не засинаєте, мозок створює негативний нейронний зв'язок: <em>"Ліжко = місце тривоги й неспокою"</em>.</p>
-      
+
       <div class="highlight-box">
         <strong>💡 Правило 20 хвилин:</strong>
         <p>Якщо ви не заснули за 20 хвилин — устаньте з ліжка. Підійдіть до крісла або дивану при приглушеному світлі та почитайте паперову книгу або послухайте заспокійливу музику. Повертайтеся в ліжко тільки коли з'явиться сонливість.</p>
@@ -479,7 +1011,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Як температура впливає на якість сну?</h4>
       <p>Щоб заснути, внутрішня температура тіла повинна знизитися приблизно на 1°C. Саме тому в теплій або задушливій кімнаті заснути майже неможливо.</p>
-      
+
       <div class="highlight-box">
         <strong>🌡️ Оптимальний чек-лист спальні:</strong>
         <ul>
@@ -499,7 +1031,7 @@ const COURSE_DAYS = [
     content: `
       <h4>Закріплення результату</h4>
       <p>Вітаємо на 7-му дні інтенсиву! Тепер ваша мета — об'єднати найкращі техніки у ваш щоденний приємний вечірній ритуал.</p>
-      
+
       <div class="highlight-box">
         <strong>✨ Ваша ідеальна вечірня рутина (30 хвилин до сну):</strong>
         <ol style="padding-left: 20px; margin-top: 8px;">
@@ -524,15 +1056,15 @@ function renderCourseTab() {
   const paywallElem = document.getElementById('coursePaywall');
   const contentElem = document.getElementById('courseContent');
   const badgeText = document.getElementById('courseProgressText');
+  const isPremium = !!(state.profile && state.profile.is_premium);
 
-  if (!state.isPremium) {
+  if (!isPremium) {
     if (paywallElem) paywallElem.style.display = 'block';
     if (contentElem) contentElem.style.display = 'none';
     if (badgeText) badgeText.textContent = 'Преміум🔒';
     return;
   }
 
-  // Premium active
   if (paywallElem) paywallElem.style.display = 'none';
   if (contentElem) contentElem.style.display = 'block';
 
@@ -544,10 +1076,11 @@ function renderCourseTab() {
   const percent = Math.round((count / 7) * 100);
 
   if (badgeText) badgeText.textContent = `${count}/7 Днів`;
-  document.getElementById('courseProgressPercent').textContent = `${percent}%`;
-  document.getElementById('courseProgressBar').style.width = `${percent}%`;
+  const pp = document.getElementById('courseProgressPercent');
+  const pb = document.getElementById('courseProgressBar');
+  if (pp) pp.textContent = `${percent}%`;
+  if (pb) pb.style.width = `${percent}%`;
 
-  // Render Evening Checklist
   const chk = state.courseProgress.checklist || {};
   let chkDoneCount = 0;
   const keys = ['air', 'screens', 'braindump', 'caffeine', 'relax'];
@@ -561,7 +1094,6 @@ function renderCourseTab() {
   const chkTag = document.getElementById('checklistCountTag');
   if (chkTag) chkTag.textContent = `${chkDoneCount}/${keys.length} виконано`;
 
-  // Render 7-Day Grid
   const grid = document.getElementById('courseDaysGrid');
   if (!grid) return;
   grid.innerHTML = '';
@@ -597,7 +1129,7 @@ function toggleChecklistItem(checkbox, key) {
   if (!state.courseProgress.checklist) state.courseProgress.checklist = {};
 
   state.courseProgress.checklist[key] = checkbox.checked;
-  saveState();
+  saveLocal();
 
   const keys = ['air', 'screens', 'braindump', 'caffeine', 'relax'];
   const doneCount = keys.filter(k => state.courseProgress.checklist[k]).length;
@@ -611,16 +1143,16 @@ function openLessonModal(dayNumber) {
   const lesson = COURSE_DAYS.find(d => d.day === dayNumber);
   if (!lesson) return;
 
-  document.getElementById('lessonModalTitle').textContent = `День ${lesson.day}: ${lesson.title}`;
+  document.getElementById('lessonModalTitle').textContent = `${t('day')} ${lesson.day}: ${lesson.title}`;
   document.getElementById('lessonModalBody').innerHTML = lesson.content;
 
   const btn = document.getElementById('completeLessonBtn');
   const isDone = state.courseProgress.completedDays.includes(dayNumber);
   if (isDone) {
-    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Урок пройдено (натисніть, щоб скасувати)';
+    btn.innerHTML = '<i class="fa-solid fa-check-double"></i> ' + t('done');
     btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
   } else {
-    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Позначити урок пройденим';
+    btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> ' + t('markDone');
     btn.style.background = 'linear-gradient(135deg, var(--accent-indigo), #4f46e5)';
   }
 
@@ -642,7 +1174,7 @@ function toggleCompleteCurrentLesson() {
   } else {
     state.courseProgress.completedDays.push(activeLessonDay);
   }
-  saveState();
+  saveLocal();
 
   closeLessonModal();
   renderCourseTab();
@@ -686,7 +1218,6 @@ function playAudioPreset(preset) {
 
     stopAudioPreset();
 
-    // Create Noise Buffer
     const bufferSize = audioCtx.sampleRate * 2;
     const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -695,17 +1226,14 @@ function playAudioPreset(preset) {
     for (let i = 0; i < bufferSize; i++) {
       const white = Math.random() * 2 - 1;
       if (preset === 'rain' || preset === 'ocean') {
-        // Pink / Brown noise filter simulation
         data[i] = (lastOut + (0.02 * white)) / 1.02;
         lastOut = data[i];
         data[i] *= 3.5;
       } else if (preset === 'forest') {
-        // Soft nature noise
         data[i] = (lastOut + (0.01 * white)) / 1.01;
         lastOut = data[i];
         data[i] *= 2.5;
       } else {
-        // Soft pink noise
         data[i] = white * 0.15;
       }
     }
@@ -714,7 +1242,6 @@ function playAudioPreset(preset) {
     noiseSource.buffer = buffer;
     noiseSource.loop = true;
 
-    // Filter Node
     const filter = audioCtx.createBiquadFilter();
     if (preset === 'rain') {
       filter.type = 'lowpass';
@@ -723,9 +1250,8 @@ function playAudioPreset(preset) {
       filter.type = 'lowpass';
       filter.frequency.value = 400;
 
-      // LFO modulation for ocean waves effect
       const lfo = audioCtx.createOscillator();
-      lfo.frequency.value = 0.12; // 8 sec wave cycle
+      lfo.frequency.value = 0.12;
       const lfoGain = audioCtx.createGain();
       lfoGain.gain.value = 250;
       lfo.connect(lfoGain);
@@ -848,4 +1374,3 @@ function initiateSubscriptionPayment() {
     alert(message);
   }
 }
-

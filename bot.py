@@ -77,6 +77,11 @@ dp = Dispatcher(storage=MemoryStorage())
 
 DATA_FILE = os.getenv("DATA_FILE", "sleep_ai_data.json")
 
+# Реквізити для оплати переказом на картку (без Monobank-банки).
+# Напр.: PAYMENT_CARD="5375 4114 1234 5678"  PAYMENT_NAME="Іваненко Іван"
+PAYMENT_CARD = os.getenv("PAYMENT_CARD", "")
+PAYMENT_NAME = os.getenv("PAYMENT_NAME", "")
+
 # ID адміністраторів, які мають доступ до /admin та /buyers.
 # Задаються через змінну оточення ADMIN_IDS (список через кому), напр.: ADMIN_IDS="1373248099,987654321"
 ADMIN_IDS = []
@@ -151,10 +156,9 @@ STRINGS = {
         "paywall_program": "🎯 **Ваша програма, складена ШІ:**",
         "paywall_after": "💎 **Після оплати відкриється:**\n• Усі 7 персональних уроків із практичними вправами\n• Трекер сну, статистика та ШІ-консультант\n• Аудіо-релакс та вечірній чек-лист засинання",
         "paywall_price": "🏷️ **Вартість:** **99 грн** *(одноразовий платіж • доступ назавжди)*",
-        "btn_pay_mono": "💳 Придбати доступ за 99 грн (Monobank / Card)",
-        "pay_mono_title": "💳 **Оплата курсу (99 грн) через Monobank**",
-        "pay_mono_steps": "1️⃣ Перейдіть за посиланням та сплатіть **99 грн** у банку Monobank.\n2️⃣ Зробіть скріншот або фото квитанції про оплату.\n3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!",
-        "btn_pay_link": "🔗 Банка Monobank (Сплатити 99 грн)",
+        "btn_pay_mono": "💳 Придбати доступ за 99 грн",
+        "pay_mono_title": "💳 **Оплата курсу (99 грн)**",
+        "pay_mono_steps": "1️⃣ Перекажіть **99 грн** на картку (реквізити нижче).\n2️⃣ Зробіть скріншот або фото квитанції про оплату.\n3️⃣ Натисніть кнопку **«📸 Я оплатив (Надіслати квитанцію)»** та прикріпіть фото!",
         "btn_pay_sent": "📸 Я оплатив (Надіслати квитанцію)",
         "receipt_ask": "📸 **Будь ласка, надішліть фото або скріншот квитанції про оплату.**\n\nОдразу після відправки вона надійде адміністратору на перевірку ⏳",
         "receipt_received": "✅ **Квитанцію успішно отримано!**\n\nВона відправлена адміністратору на перевірку. Доступ до курсу буде активовано протягом декількох хвилин ⏳",
@@ -447,10 +451,9 @@ STRINGS = {
         "paywall_program": "🎯 **Your AI-generated program:**",
         "paywall_after": "💎 **After payment you'll unlock:**\n• All 7 personal lessons with practical exercises\n• Sleep tracker, statistics and AI advisor\n• Audio relaxation and an evening wind-down checklist",
         "paywall_price": "🏷️ **Price:** **99 UAH** *(one-time payment • lifetime access)*",
-        "btn_pay_mono": "💳 Buy access for 99 UAH (Monobank / Card)",
-        "pay_mono_title": "💳 **Course payment (99 UAH) via Monobank**",
-        "pay_mono_steps": "1️⃣ Follow the link and pay **99 UAH** in Monobank.\n2️⃣ Take a screenshot or photo of the payment receipt.\n3️⃣ Tap the **«📸 I've paid (Send receipt)»** button and attach the photo!",
-        "btn_pay_link": "🔗 Monobank jar (Pay 99 UAH)",
+        "btn_pay_mono": "💳 Buy access for 99 UAH",
+        "pay_mono_title": "💳 **Course payment (99 UAH)**",
+        "pay_mono_steps": "1️⃣ Transfer **99 UAH** to the card (details below).\n2️⃣ Take a screenshot or photo of the payment receipt.\n3️⃣ Tap the **«📸 I've paid (Send receipt)»** button and attach the photo!",
         "btn_pay_sent": "📸 I've paid (Send receipt)",
         "receipt_ask": "📸 **Please send a photo or screenshot of your payment receipt.**\n\nAs soon as you send it, it will go to the administrator for review ⏳",
         "receipt_received": "✅ **Receipt received successfully!**\n\nIt has been sent to the administrator for review. Access to the course will be activated within a few minutes ⏳",
@@ -743,10 +746,9 @@ STRINGS = {
         "paywall_program": "🎯 **Ваша программа, составленная ИИ:**",
         "paywall_after": "💎 **После оплаты откроется:**\n• Все 7 персональных уроков с практическими упражнениями\n• Трекер сна, статистика и ИИ-консультант\n• Аудио-релакс и вечерний чек-лист засыпания",
         "paywall_price": "🏷️ **Стоимость:** **99 грн** *(разовый платёж • доступ навсегда)*",
-        "btn_pay_mono": "💳 Купить доступ за 99 грн (Monobank / Card)",
-        "pay_mono_title": "💳 **Оплата курса (99 грн) через Monobank**",
-        "pay_mono_steps": "1️⃣ Перейдите по ссылке и оплатите **99 грн** в банке Monobank.\n2️⃣ Сделайте скриншот или фото квитанции об оплате.\n3️⃣ Нажмите кнопку **«📸 Я оплатил (Отправить квитанцию)»** и прикрепите фото!",
-        "btn_pay_link": "🔗 Банка Monobank (Оплатить 99 грн)",
+        "btn_pay_mono": "💳 Купить доступ за 99 грн",
+        "pay_mono_title": "💳 **Оплата курса (99 грн)**",
+        "pay_mono_steps": "1️⃣ Переведите **99 грн** на карту (реквизиты ниже).\n2️⃣ Сделайте скриншот или фото квитанции об оплате.\n3️⃣ Нажмите кнопку **«📸 Я оплатил (Отправить квитанцию)»** и прикрепите фото!",
         "btn_pay_sent": "📸 Я оплатил (Отправить квитанцию)",
         "receipt_ask": "📸 **Пожалуйста, отправьте фото или скриншот квитанции об оплате.**\n\nСразу после отправки она поступит администратору на проверку ⏳",
         "receipt_received": "✅ **Квитанция успешно получена!**\n\nОна отправлена администратору на проверку. Доступ к курсу будет активирован в течение нескольких минут ⏳",
@@ -1443,8 +1445,28 @@ def get_text(profile, key, **kwargs):
     return template.format(**kwargs)
 
 # --- СПРАВЖНІЙ ШІ-ДВИГУН ГЕНЕРАЦІЇ АНАЛІЗУ СНУ (LIVE LLM) ---
+G4F_MODEL = os.getenv("G4F_MODEL", "gpt-4o-mini")
+
+def _call_g4f(prompt: str):
+    """Безкоштовний виклик через g4f (ключі не потрібні)."""
+    try:
+        response = ai_client.chat.completions.create(
+            model=G4F_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        content = response.choices[0].message.content
+        if content and len(content.strip()) > 20:
+            return content.strip()
+    except Exception as e:
+        logging.error(f"g4f Live AI Error: {e}")
+    return None
+
 def _call_llm(prompt: str):
-    """Виклик LLM: OpenAI API → Gemini (безкоштовний ключ) → g4f."""
+    """Виклик LLM: g4f (безкоштовний) → OpenAI API → Gemini."""
+    g4f_content = _call_g4f(prompt)
+    if g4f_content:
+        return g4f_content
+
     try:
         from openai import OpenAI
     except ImportError:
@@ -1462,13 +1484,7 @@ def _call_llm(prompt: str):
     if gemini_key:
         providers.append((
             "Gemini", "https://generativelanguage.googleapis.com/v1beta/openai/",
-            os.getenv("GEMINI_MODEL", "gemini-1.5-flash"), gemini_key,
-        ))
-    groq_key = os.getenv("GROQ_API_KEY")
-    if groq_key:
-        providers.append((
-            "Groq", "https://api.groq.com/openai/v1",
-            os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"), groq_key,
+            os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest"), gemini_key,
         ))
 
     for name, base_url, model, key in providers:
@@ -1484,16 +1500,6 @@ def _call_llm(prompt: str):
         except Exception as e:
             logging.error(f"{name} API Error: {e}")
 
-    try:
-        response = ai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        content = response.choices[0].message.content
-        if content and len(content.strip()) > 20:
-            return content.strip()
-    except Exception as e:
-        logging.error(f"g4f Live AI Error: {e}")
     return None
 
 def generate_real_ai_analysis(profile, duration, quality, bedtime_str, waketime_str, wakeups=None, factors=None):
@@ -3561,8 +3567,11 @@ async def process_pay_mono_link(callback: CallbackQuery, state: FSMContext):
         f"{get_text(profile, 'pay_mono_title')}\n\n"
         f"{get_text(profile, 'pay_mono_steps')}"
     )
+    if PAYMENT_CARD:
+        text += f"\n\n💳 **Номер картки:** `{PAYMENT_CARD}`"
+    if PAYMENT_NAME:
+        text += f"\n👤 **Одержувач:** {PAYMENT_NAME}"
     buttons = [
-        [InlineKeyboardButton(text=get_text(profile, "btn_pay_link"), url="https://send.monobank.ua")],
         [InlineKeyboardButton(text=get_text(profile, "btn_pay_sent"), callback_data="pay_upload_receipt")]
     ]
     kb = InlineKeyboardMarkup(inline_keyboard=buttons)

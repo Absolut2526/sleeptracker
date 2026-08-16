@@ -17,6 +17,7 @@ bot.log
 
 # User database (містить персональні дані користувачів — не для репозиторію)
 sleep_ai_data.json
+sleep_ai_data.json.bak
 .sleep_ai_*.tmp
 
 # OS
